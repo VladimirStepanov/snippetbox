@@ -1,6 +1,7 @@
 package main
 
 import (
+	"html/template"
 	"net/http"
 	"time"
 
@@ -10,8 +11,9 @@ import (
 
 //Server apllication struct
 type Server struct {
-	addr string
-	log  *logrus.Logger
+	addr          string
+	log           *logrus.Logger
+	templateCache map[string]*template.Template
 }
 
 //Routes return mux.Router with filled routes
@@ -26,6 +28,14 @@ func (s *Server) routes() http.Handler {
 
 //Start listen and serve
 func (s *Server) Start() error {
+
+	templateCache, err := newTemplateCache("./ui/html")
+
+	if err != nil {
+		return err
+	}
+
+	s.templateCache = templateCache
 
 	srv := &http.Server{
 		Handler:      s.routes(),

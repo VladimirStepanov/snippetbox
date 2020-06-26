@@ -9,6 +9,7 @@ import (
 
 //Server apllication struct
 type Server struct {
+	addr string
 }
 
 //Routes return mux.Router with filled routes
@@ -25,9 +26,8 @@ func (s *Server) routes() *mux.Router {
 func (s *Server) Start() error {
 
 	srv := &http.Server{
-		Handler: s.routes(),
-		Addr:    ":8080",
-		// Good practice: enforce timeouts for servers you create!
+		Handler:      s.routes(),
+		Addr:         s.addr,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
@@ -36,6 +36,8 @@ func (s *Server) Start() error {
 }
 
 //New return new Server instance
-func New() *Server {
-	return &Server{}
+func New(addr string) *Server {
+	return &Server{
+		addr: addr,
+	}
 }

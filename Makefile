@@ -5,7 +5,7 @@ build:
 
 
 test:
-	go test -v cmd/web/*
+	go test -v ./...
 
 clean:
 	rm -f $(prog)

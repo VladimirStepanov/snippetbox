@@ -15,13 +15,13 @@ type Server struct {
 }
 
 //Routes return mux.Router with filled routes
-func (s *Server) routes() *mux.Router {
+func (s *Server) routes() http.Handler {
 	r := mux.NewRouter()
 
 	strPref := http.StripPrefix("/static/", http.FileServer(http.Dir("./ui/static/")))
 	r.PathPrefix("/static/").Handler(strPref)
 	r.HandleFunc("/", s.home).Methods("GET")
-	return r
+	return s.loggerMiddleware(r)
 }
 
 //Start listen and serve

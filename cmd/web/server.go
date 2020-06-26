@@ -5,11 +5,13 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 )
 
 //Server apllication struct
 type Server struct {
 	addr string
+	log  *logrus.Logger
 }
 
 //Routes return mux.Router with filled routes
@@ -32,12 +34,15 @@ func (s *Server) Start() error {
 		ReadTimeout:  15 * time.Second,
 	}
 
+	s.log.Infof("Server start at addr %s\n", s.addr)
+
 	return srv.ListenAndServe()
 }
 
 //New return new Server instance
-func New(addr string) *Server {
+func New(addr string, log *logrus.Logger) *Server {
 	return &Server{
 		addr: addr,
+		log:  log,
 	}
 }

@@ -16,6 +16,18 @@ func NewTestServer() *Server {
 	return New(":8080", logger)
 }
 
+func NewTestServerWithUI(dir string) (*Server, error) {
+	s := NewTestServer()
+	var err error
+	s.templateCache, err = newTemplateCache(dir)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return s, nil
+}
+
 func get(t *testing.T, srv *httptest.Server) (int, http.Header, []byte) {
 	rs, err := srv.Client().Get(srv.URL)
 

@@ -7,9 +7,7 @@ import (
 )
 
 func TestHomeHandler(t *testing.T) {
-	s := NewTestServer()
-	var err error
-	s.templateCache, err = newTemplateCache("../../ui/html")
+	s, err := NewTestServerWithUI("../../ui/html")
 
 	if err != nil {
 		t.Fatal(err)
@@ -19,7 +17,7 @@ func TestHomeHandler(t *testing.T) {
 
 	defer srv.Close()
 
-	code, _, _ := getTest(t, srv)
+	code, _, _ := get(t, srv)
 
 	if code != http.StatusOK {
 		t.Fatalf("Return code %d != %d", code, http.StatusOK)

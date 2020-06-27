@@ -21,12 +21,10 @@ func TestRenderNotFound(t *testing.T) {
 }
 
 func TestRenderSuccess(t *testing.T) {
-	s := NewTestServer()
-	var err error
-	s.templateCache, err = newTemplateCache("../../ui/html")
+	s, err := NewTestServerWithUI("../../ui/html")
 
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatal(err)
 	}
 
 	w := httptest.NewRecorder()

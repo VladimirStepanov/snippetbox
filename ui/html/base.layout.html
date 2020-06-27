@@ -15,11 +15,16 @@
         <nav>
             <div>
                 <a href='/'>Home</a>
+                <a href='/snippets'>My snippets</a>
+
                 <!-- {{if .AuthenticatedUser}}
-                    <a href='/snippet/create'>Create snippet</a>
                 {{end}} -->
             </div>
-            <!-- <div> -->
+            <div>
+                <!-- <a href='/snippet/create'>Create snippet</a> -->
+                <!-- <a href='/user/signup'>Signup</a> -->
+                <!-- <a href='/user/login'>Login</a> -->
+                <!-- <a href='/user/logout'>Logout</a> -->
                 <!-- {{if .AuthenticatedUser}}
                     <form action='/user/logout' method='POST'>
                         <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
@@ -30,7 +35,7 @@
                     <a href='/user/signup'>Signup</a>
                     <a href='/user/login'>Login</a>
                 {{end}} -->
-            <!-- </div> -->
+            </div>
         </nav>
         <section>
             <!-- {{with .Flash}}

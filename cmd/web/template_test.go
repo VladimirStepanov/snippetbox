@@ -15,8 +15,8 @@ func TestRenderNotFound(t *testing.T) {
 
 	s.render(w, "broken")
 
-	if w.Result().StatusCode != http.StatusInternalServerError {
-		t.Fatalf("Error! %d != %d", w.Result().StatusCode, http.StatusInternalServerError)
+	if w.Code != http.StatusInternalServerError {
+		t.Fatalf("Error! %d != %d", w.Code, http.StatusInternalServerError)
 	}
 }
 
@@ -33,7 +33,7 @@ func TestRenderSuccess(t *testing.T) {
 
 	s.render(w, "home")
 
-	if w.Result().StatusCode != http.StatusOK {
-		t.Fatalf("Error! %d != %d", w.Result().StatusCode, http.StatusOK)
+	if w.Code != http.StatusOK {
+		t.Fatalf("Error! %d != %d", w.Code, http.StatusOK)
 	}
 }

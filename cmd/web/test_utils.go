@@ -16,6 +16,7 @@ func NewTestServer() *Server {
 	return New(":8080", logger)
 }
 
+//NewTestServerWithUI return *Server object with templateCache
 func NewTestServerWithUI(dir string) (*Server, error) {
 	s := NewTestServer()
 	var err error

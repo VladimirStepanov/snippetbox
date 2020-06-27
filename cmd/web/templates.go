@@ -10,7 +10,8 @@ import (
 )
 
 type templateData struct {
-	Year int
+	Title string
+	Year  int
 }
 
 func addDefaultData(t *templateData) *templateData {
@@ -18,11 +19,21 @@ func addDefaultData(t *templateData) *templateData {
 		t = &templateData{}
 	}
 
+	if t.Title == "" {
+		t.Title = "Deafault"
+	}
+
 	t.Year = time.Now().Year()
 	return t
 }
 
 func (s *Server) render(w http.ResponseWriter, templateName string, td *templateData) {
+
+	if td == nil || td.Title == "" {
+		s.serverError(w, fmt.Errorf("td.Title is empty"))
+		return
+	}
+
 	key := fmt.Sprintf("%s.page.html", templateName)
 	val, ok := s.templateCache[key]
 	if !ok {

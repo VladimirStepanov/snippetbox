@@ -5,5 +5,5 @@ import (
 )
 
 func (s *Server) home(w http.ResponseWriter, r *http.Request) {
-	s.render(w, "snippets", nil)
+	s.render(w, "snippets", &templateData{Title: "Home"})
 }

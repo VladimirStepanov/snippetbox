@@ -13,7 +13,7 @@ func TestRenderNotFound(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	s.render(w, "broken")
+	s.render(w, "broken", nil)
 
 	if w.Code != http.StatusInternalServerError {
 		t.Fatalf("Error! %d != %d", w.Code, http.StatusInternalServerError)
@@ -29,7 +29,7 @@ func TestRenderSuccess(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	s.render(w, "home")
+	s.render(w, "snippets", nil)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("Error! %d != %d", w.Code, http.StatusOK)

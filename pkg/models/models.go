@@ -4,11 +4,12 @@ import "time"
 
 //User model for users table
 type User struct {
-	ID       int
-	Name     string
-	Surname  string
-	Email    string
-	Password []byte
+	ID             int
+	Name           string
+	Surname        string
+	Email          string
+	Password       string
+	HashedPassword []byte
 }
 
 //Snippet model for snippets table

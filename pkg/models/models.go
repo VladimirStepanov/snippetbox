@@ -1,6 +1,14 @@
 package models
 
-import "time"
+import (
+	"errors"
+	"time"
+)
+
+//Custom errors
+var (
+	ErrNoRecord = errors.New("Record not found")
+)
 
 //User model for users table
 type User struct {
@@ -14,7 +22,7 @@ type User struct {
 
 //Snippet model for snippets table
 type Snippet struct {
-	ID       int
+	ID       string
 	Title    string
 	Content  string
 	Created  time.Time

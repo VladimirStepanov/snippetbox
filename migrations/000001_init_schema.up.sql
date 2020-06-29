@@ -7,7 +7,7 @@ create table users (
 );
 
 create table snippets (
-    id char(32) primary key,
+    id char(16) primary key,
     title varchar(300) not null,
     content TEXT not null,
     create_date date not null,

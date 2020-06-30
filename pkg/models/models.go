@@ -7,14 +7,15 @@ import (
 
 //Custom errors
 var (
-	ErrNoRecord = errors.New("Record not found")
+	ErrNoRecord       = errors.New("models: Record not found")
+	ErrDuplicateEmail = errors.New("models: Duplicate email")
 )
 
 //User model for users table
 type User struct {
-	ID             int
-	Name           string
-	Surname        string
+	ID             int64
+	Firstname      string
+	Lastname       string
 	Email          string
 	Password       string
 	HashedPassword []byte

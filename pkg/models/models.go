@@ -9,6 +9,7 @@ import (
 var (
 	ErrNoRecord       = errors.New("models: Record not found")
 	ErrDuplicateEmail = errors.New("models: Duplicate email")
+	ErrAuth           = errors.New("models: Can't find user in database")
 )
 
 //User model for users table
@@ -23,7 +24,7 @@ type User struct {
 
 //Snippet model for snippets table
 type Snippet struct {
-	ID       string
+	ID       int64
 	Title    string
 	Content  string
 	Created  time.Time

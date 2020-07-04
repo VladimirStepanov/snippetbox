@@ -44,8 +44,8 @@ func (s *SnippetStore) Insert(title, content string, expire int, isPublic bool, 
 }
 
 //Delete from snippets
-func (s *SnippetStore) Delete(snippetID int64) error {
-	res, err := s.DB.Exec("DELETE from snippets WHERE id=?", snippetID)
+func (s *SnippetStore) Delete(snippetID, userID int64) error {
+	res, err := s.DB.Exec("DELETE from snippets WHERE id=? and owner_id=?", snippetID, userID)
 
 	if err != nil {
 		return err

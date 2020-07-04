@@ -28,15 +28,33 @@ func getPreparedSnippetStore(t *testing.T, db *sql.DB) (*SnippetStore, int64) {
 
 func TestDeleteSnippet(t *testing.T) {
 	tests := map[string]struct {
-		WantError error
-		Data      *SnippetData
-		GetID     func(id int64) int64
+		WantError  error
+		Data       *SnippetData
+		GetID      func(id int64) int64
+		GetOwnerID func(id int64) int64
 	}{
 		"Delete row not found": {
 			WantError: models.ErrNoRecord,
 			Data:      nil,
 			GetID: func(id int64) int64 {
 				return id + 10
+			},
+			GetOwnerID: func(id int64) int64 {
+				return id
+			},
+		},
+		"Delete row not found because bad user": {
+			WantError: models.ErrNoRecord,
+			Data: &SnippetData{
+				Title:   "Title",
+				Content: "Content",
+				Expire:  1,
+			},
+			GetID: func(id int64) int64 {
+				return id
+			},
+			GetOwnerID: func(id int64) int64 {
+				return id + 1
 			},
 		},
 		"Success delete": {
@@ -47,6 +65,9 @@ func TestDeleteSnippet(t *testing.T) {
 				Expire:  1,
 			},
 			GetID: func(id int64) int64 {
+				return id
+			},
+			GetOwnerID: func(id int64) int64 {
 				return id
 			},
 		},
@@ -68,7 +89,7 @@ func TestDeleteSnippet(t *testing.T) {
 				}
 			}
 
-			err = ss.Delete(value.GetID(snippetID))
+			err = ss.Delete(value.GetID(snippetID), value.GetOwnerID(ownerID))
 
 			if value.WantError != nil && value.WantError != err {
 				t.Fatalf("Want: %v, Get: %v\n", value.WantError, err)

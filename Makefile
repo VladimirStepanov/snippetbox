@@ -5,7 +5,7 @@ build:
 
 
 test:
-	go test -v ./...
+	go test -count=1 -v ./... 
 
 clean:
 	rm -f $(prog)

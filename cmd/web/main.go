@@ -24,7 +24,7 @@ func getLogger(levelString string) (*logrus.Logger, error) {
 func main() {
 	addr := flag.String("addr", ":8080", "Listen addr")
 	logLevel := flag.String("level", "INFO", "Log level")
-	dsn := flag.String("dsn", "root:123@/snippetbox", "Dsn")
+	dsn := flag.String("dsn", "root:123@/snippetbox?parseTime=true", "Dsn")
 
 	flag.Parse()
 

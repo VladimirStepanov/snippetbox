@@ -95,13 +95,10 @@ func (s *SnippetStore) Update(snippet *models.Snippet, ownerID int64) error {
 
 //LatestAll return latest snippets sorted by create_date
 func (s *SnippetStore) LatestAll(ownerID int64, count, page int) ([]*models.Snippet, error) {
-	var start int
-
-	start = page
-	if start == 1 {
+	start := page*count - count + 1
+	if page == 1 {
 		start = 0
 	}
-
 	sort.SliceStable(s.DB, func(i, j int) bool {
 		return s.DB[i].Expires.Before(s.DB[j].Expires)
 	})

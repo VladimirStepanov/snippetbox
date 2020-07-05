@@ -7,11 +7,14 @@ import (
 	"net/http"
 	"path/filepath"
 	"time"
+
+	"githib.com/VladimirStepanov/snippetbox/pkg/models"
 )
 
 type templateData struct {
-	Title string
-	Year  int
+	Snippets []*models.Snippet
+	Title    string
+	Year     int
 }
 
 func addDefaultData(t *templateData) *templateData {

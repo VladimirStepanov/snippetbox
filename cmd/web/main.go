@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 
+	"githib.com/VladimirStepanov/snippetbox/pkg/models/mysql"
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,6 +24,7 @@ func getLogger(levelString string) (*logrus.Logger, error) {
 func main() {
 	addr := flag.String("addr", ":8080", "Listen addr")
 	logLevel := flag.String("level", "INFO", "Log level")
+	dsn := flag.String("dsn", "root:123@/snippetbox", "Dsn")
 
 	flag.Parse()
 
@@ -33,7 +35,14 @@ func main() {
 		return
 	}
 
-	serv := New(*addr, log)
+	db, err := openDB(*dsn)
+
+	if err != nil {
+		log.Errorf("Error while open DB connection %v", err)
+		return
+	}
+
+	serv := New(*addr, log, &mysql.UsersStore{DB: db}, &mysql.SnippetStore{DB: db})
 
 	if err = serv.Start(); err != nil {
 		log.Errorf("Error while Start server... %v\n", err)

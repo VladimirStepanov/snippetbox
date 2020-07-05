@@ -6,6 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"githib.com/VladimirStepanov/snippetbox/pkg/models"
+	"githib.com/VladimirStepanov/snippetbox/pkg/models/mock"
 	"github.com/sirupsen/logrus"
 )
 
@@ -13,7 +15,8 @@ import (
 func NewTestServer() *Server {
 	logger := logrus.New()
 	logger.SetOutput(ioutil.Discard)
-	return New(":8080", logger)
+	us := map[int64]*models.User{}
+	return New(":8080", logger, &mock.UsersStore{DB: us}, &mock.SnippetStore{DB: []*models.Snippet{}, UsersMap: us})
 }
 
 //NewTestServerWithUI return *Server object with templateCache

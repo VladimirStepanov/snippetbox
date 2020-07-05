@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"githib.com/VladimirStepanov/snippetbox/pkg/models"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )
@@ -14,6 +15,8 @@ type Server struct {
 	addr          string
 	log           *logrus.Logger
 	templateCache map[string]*template.Template
+	userStore     models.UserRepository
+	snippetStore  models.SnippetRepository
 }
 
 //Routes return mux.Router with filled routes
@@ -50,9 +53,11 @@ func (s *Server) Start() error {
 }
 
 //New return new Server instance
-func New(addr string, log *logrus.Logger) *Server {
+func New(addr string, log *logrus.Logger, ur models.UserRepository, sr models.SnippetRepository) *Server {
 	return &Server{
-		addr: addr,
-		log:  log,
+		addr:         addr,
+		log:          log,
+		userStore:    ur,
+		snippetStore: sr,
 	}
 }

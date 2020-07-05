@@ -17,6 +17,13 @@ type templateData struct {
 	Year     int
 }
 
+func humanDate(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.UTC().Format("02 Jan 2006")
+}
+
 func addDefaultData(t *templateData) *templateData {
 	if t == nil {
 		t = &templateData{}
@@ -47,6 +54,11 @@ func (s *Server) render(w http.ResponseWriter, templateName string, td *template
 }
 
 func newTemplateCache(dir string) (map[string]*template.Template, error) {
+
+	funcMap := template.FuncMap{
+		"humanDate": humanDate,
+	}
+
 	res := map[string]*template.Template{}
 
 	files, err := filepath.Glob(filepath.Join(dir, "*.page.html"))
@@ -56,13 +68,14 @@ func newTemplateCache(dir string) (map[string]*template.Template, error) {
 	}
 
 	for _, f := range files {
-		tmpl, err := template.ParseFiles(f, filepath.Join(dir, "footer.partial.html"), filepath.Join(dir, "base.layout.html"))
+		name := filepath.Base(f)
+		tmpl, err := template.New(name).Funcs(funcMap).ParseFiles(f, filepath.Join(dir, "footer.partial.html"), filepath.Join(dir, "base.layout.html"))
 
 		if err != nil {
 			return nil, err
 		}
 
-		res[filepath.Base(f)] = tmpl
+		res[name] = tmpl
 	}
 	return res, nil
 }

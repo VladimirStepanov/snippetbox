@@ -26,6 +26,7 @@ func (s *Server) routes() http.Handler {
 	strPref := http.StripPrefix("/static/", http.FileServer(http.Dir("./ui/static/")))
 	r.PathPrefix("/static/").Handler(strPref)
 	r.HandleFunc("/", s.home).Methods("GET")
+	r.HandleFunc("/snippet/{id:[0-9]+}", s.showSnippet)
 	return s.loggerMiddleware(r)
 }
 

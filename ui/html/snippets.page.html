@@ -1,0 +1,26 @@
+{{template "base" .}}
+
+{{define "title"}}{{.Title}}{{end}}
+
+{{define "body"}}
+     {{if .Snippets}}
+        <h2>Latest Snippets</h2>
+        <table>
+            <tr>
+                <th>Title</th>
+                <th>Created</th>
+                <th>Owner</th>
+            </tr>
+
+            {{range .Snippets}}
+            <tr>
+                <td><a href="/snippet/{{.ID}}">{{.Title}}</a></td>
+                <td>{{humanDate .Created}}</td>
+                <td>{{.OwnerID}}</td>
+                {{end}}
+            </tr>
+        </table>
+     {{else}}
+        <center>Snippets feed is empty</center>
+     {{end}}
+{{end}}

@@ -1,27 +1,53 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"githib.com/VladimirStepanov/snippetbox/pkg/models"
-	"githib.com/VladimirStepanov/snippetbox/pkg/models/mock"
 	"github.com/sirupsen/logrus"
 )
 
+func getTestUserData() map[int64]*models.User {
+	um := map[int64]*models.User{}
+
+	um[1] = &models.User{ID: 1, Firstname: "Ivan", Lastname: "Doe", Email: "vova@mail.com", HashedPassword: []byte("11")}
+	um[2] = &models.User{ID: 2, Firstname: "Conor", Lastname: "Ivanov", Email: "conor@mail.com", HashedPassword: []byte("11")}
+
+	return um
+}
+
+func getTestSnippetData(startID, count int, isPub bool, oID int64) []*models.Snippet {
+	ss := []*models.Snippet{}
+	for i := startID; i < startID+count; i++ {
+		ss = append(ss, &models.Snippet{
+			ID:       int64(i),
+			Title:    fmt.Sprintf("%dtitle%d", i, i),
+			Content:  fmt.Sprintf("%content%d", i, i),
+			Created:  time.Now(),
+			Expires:  time.Now().Add(time.Hour),
+			OwnerID:  oID,
+			IsPublic: isPub,
+		})
+	}
+
+	return ss
+}
+
 //NewTestServer return *Server test object
-func NewTestServer() *Server {
+func NewTestServer(sr models.SnippetRepository, ur models.UserRepository) *Server {
 	logger := logrus.New()
 	logger.SetOutput(ioutil.Discard)
-	us := map[int64]*models.User{}
-	return New(":8080", logger, &mock.UsersStore{DB: us}, &mock.SnippetStore{DB: []*models.Snippet{}, UsersMap: us})
+	return New(":8080", logger, ur, sr)
 }
 
 //NewTestServerWithUI return *Server object with templateCache
-func NewTestServerWithUI(dir string) (*Server, error) {
-	s := NewTestServer()
+func NewTestServerWithUI(dir string, sr models.SnippetRepository, ur models.UserRepository) (*Server, error) {
+	s := NewTestServer(sr, ur)
 	var err error
 	s.templateCache, err = newTemplateCache(dir)
 
@@ -32,8 +58,8 @@ func NewTestServerWithUI(dir string) (*Server, error) {
 	return s, nil
 }
 
-func get(t *testing.T, srv *httptest.Server) (int, http.Header, []byte) {
-	rs, err := srv.Client().Get(srv.URL)
+func get(url string, t *testing.T, srv *httptest.Server) (int, http.Header, []byte) {
+	rs, err := srv.Client().Get(url)
 
 	if err != nil {
 		t.Fatal(err.Error())

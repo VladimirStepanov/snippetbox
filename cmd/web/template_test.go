@@ -8,10 +8,12 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"githib.com/VladimirStepanov/snippetbox/pkg/models/mock"
 )
 
 func TestRenderNotFound(t *testing.T) {
-	s := NewTestServer()
+	s := NewTestServer(&mock.SnippetStore{}, &mock.UsersStore{})
 	s.templateCache = map[string]*template.Template{}
 
 	w := httptest.NewRecorder()
@@ -24,7 +26,7 @@ func TestRenderNotFound(t *testing.T) {
 }
 
 func TestRenderSuccess(t *testing.T) {
-	s, err := NewTestServerWithUI("../../ui/html")
+	s, err := NewTestServerWithUI("../../ui/html", &mock.SnippetStore{}, &mock.UsersStore{})
 
 	if err != nil {
 		t.Fatal(err)
@@ -41,7 +43,7 @@ func TestRenderSuccess(t *testing.T) {
 
 func TestAddDefaultTemplateData(t *testing.T) {
 	title := "FFFFFPAGE"
-	s, err := NewTestServerWithUI("../../ui/html")
+	s, err := NewTestServerWithUI("../../ui/html", &mock.SnippetStore{}, &mock.UsersStore{})
 
 	if err != nil {
 		t.Fatal(err)

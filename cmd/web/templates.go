@@ -14,6 +14,7 @@ import (
 type templateData struct {
 	Snippets []*models.Snippet
 	Snippet  *models.Snippet
+	User     *models.User
 	Title    string
 	Year     int
 }

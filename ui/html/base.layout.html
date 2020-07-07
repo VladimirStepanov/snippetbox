@@ -18,11 +18,13 @@
                 <a href='/snippets'>My snippets</a>
 
             </div>
-            <!-- <div> -->
-                <!-- <a href='/snippet/create'>Create snippet</a> -->
-                <!-- <a href='/user/signup'>Signup</a> -->
-                <!-- <a href='/user/login'>Login</a> -->
-                <!-- <a href='/user/logout'>Logout</a> -->
+            {{if .User}}
+                <a href='/snippet/create'>Create snippet</a>
+                <a href='/user/logout'>Logout</a>
+            {{else}}
+                <a href='/user/signup'>Signup</a>
+                <a href='/user/login'>Login</a>
+            {{end}}
         </nav>
         <section>
             {{template "body" .}}

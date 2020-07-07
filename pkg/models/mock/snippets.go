@@ -57,9 +57,9 @@ func (s *SnippetStore) Insert(title, content string, expire int, isPublic bool, 
 }
 
 //Get specific snippet
-func (s *SnippetStore) Get(snippetID, userID int64) (*models.Snippet, error) {
+func (s *SnippetStore) Get(snippetID int64) (*models.Snippet, error) {
 	for _, value := range s.DB {
-		if value.ID == snippetID && value.OwnerID == userID && value.Expires.After(time.Now()) {
+		if value.ID == snippetID && value.Expires.After(time.Now()) {
 			return value, nil
 		}
 	}

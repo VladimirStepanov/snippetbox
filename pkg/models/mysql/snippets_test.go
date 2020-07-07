@@ -217,7 +217,7 @@ func TestUpdate(t *testing.T) {
 			}
 
 			if value.Data != nil && snippetID != 0 {
-				snippet, err := ss.Get(snippetID, ownerID)
+				snippet, err := ss.Get(snippetID)
 
 				if err != nil {
 					t.Fatalf("Error while get: %v %d %d", err, snippetID, ownerID)
@@ -276,7 +276,7 @@ func TestGetSnippet(t *testing.T) {
 				}
 			}
 
-			snippet, err := ss.Get(snippetID, ownerID)
+			snippet, err := ss.Get(snippetID)
 
 			if value.WantError != nil && value.WantError != err {
 				t.Fatalf("Want: %v, Get: %v\n", value.WantError, err)

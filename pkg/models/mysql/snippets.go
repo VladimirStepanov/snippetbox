@@ -66,13 +66,12 @@ func (s *SnippetStore) Delete(snippetID, userID int64) error {
 }
 
 //Get specific snippet
-func (s *SnippetStore) Get(snippetID, userID int64) (*models.Snippet, error) {
+func (s *SnippetStore) Get(snippetID int64) (*models.Snippet, error) {
 	res := &models.Snippet{}
 	row := s.DB.QueryRow(
 		`SELECT id, title, content, create_date, expiration_date, is_public, owner_id from snippets 
-		WHERE id=? AND owner_id = ? AND expiration_date > CURDATE()`,
+		WHERE id=? AND expiration_date > CURDATE()`,
 		snippetID,
-		userID,
 	)
 
 	err := row.Scan(&res.ID, &res.Title, &res.Content, &res.Created, &res.Expires, &res.IsPublic, &res.OwnerID)

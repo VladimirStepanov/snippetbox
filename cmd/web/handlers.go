@@ -61,3 +61,7 @@ func (s *Server) showSnippet(w http.ResponseWriter, r *http.Request) {
 
 	s.render(w, "snippet", &templateData{Snippet: snippet})
 }
+
+func (s *Server) signUp(w http.ResponseWriter, r *http.Request) {
+	s.render(w, "signup", &templateData{})
+}

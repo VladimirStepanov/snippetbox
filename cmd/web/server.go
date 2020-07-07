@@ -27,6 +27,7 @@ func (s *Server) routes() http.Handler {
 	r.PathPrefix("/static/").Handler(strPref)
 	r.HandleFunc("/", s.home).Methods("GET")
 	r.HandleFunc("/snippet/{id:[0-9]+}", s.showSnippet)
+	r.HandleFunc("/user/signup", s.signUp)
 	return s.loggerMiddleware(r)
 }
 

@@ -10,13 +10,14 @@ import (
 
 	"githib.com/VladimirStepanov/snippetbox/pkg/models"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func getTestUserData() map[int64]*models.User {
 	um := map[int64]*models.User{}
-
-	um[1] = &models.User{ID: 1, Firstname: "Ivan", Lastname: "Doe", Email: "vova@mail.com", HashedPassword: []byte("11")}
-	um[2] = &models.User{ID: 2, Firstname: "Conor", Lastname: "Ivanov", Email: "conor@mail.com", HashedPassword: []byte("11")}
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("12345678"), 14)
+	um[1] = &models.User{ID: 1, Firstname: "Ivan", Lastname: "Doe", Email: "vova@mail.com", HashedPassword: hashedPassword}
+	um[2] = &models.User{ID: 2, Firstname: "Conor", Lastname: "Ivanov", Email: "conor@mail.com", HashedPassword: hashedPassword}
 
 	return um
 }

@@ -9,12 +9,14 @@ import (
 	"time"
 
 	"githib.com/VladimirStepanov/snippetbox/pkg/models"
+	validation "github.com/go-ozzo/ozzo-validation"
 )
 
 type templateData struct {
 	Snippets []*models.Snippet
 	Snippet  *models.Snippet
 	User     *models.User
+	Errors   validation.Errors
 	Title    string
 	Year     int
 }

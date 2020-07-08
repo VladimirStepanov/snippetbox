@@ -26,8 +26,9 @@ func (s *Server) routes() http.Handler {
 	strPref := http.StripPrefix("/static/", http.FileServer(http.Dir("./ui/static/")))
 	r.PathPrefix("/static/").Handler(strPref)
 	r.HandleFunc("/", s.home).Methods("GET")
-	r.HandleFunc("/snippet/{id:[0-9]+}", s.showSnippet)
-	r.HandleFunc("/user/signup", s.signUp)
+	r.HandleFunc("/snippet/{id:[0-9]+}", s.showSnippet).Methods("GET")
+	r.HandleFunc("/user/signup", s.signUpPOST).Methods("POST")
+	r.HandleFunc("/user/signup", s.signUp).Methods("GET")
 	return s.loggerMiddleware(r)
 }
 

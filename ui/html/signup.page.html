@@ -6,19 +6,51 @@
 <form action='/user/signup' method='POST'>
     <div>
         <label>Firstname:</label>
-        <input type='text' name='firstname' value=''>
+        {{with .Errors}}
+            {{if .Firstname}}
+                <label class='error'>{{.Firstname}}</label>
+            {{end}}
+        {{end}}
+        {{$first_name := ""}}
+        {{with .FormUser}}
+            {{$first_name = .Firstname}}
+        {{end}}
+        <input type='text' name='firstname' value='{{$first_name}}'>
     </div>
     <div>
         <label>Lastname:</label>
-        <input type='text' name='lastname' value=''>
+        {{with .Errors}}
+            {{if .Lastname}}
+                <label class='error'>{{.Lastname}}</label>
+            {{end}}
+        {{end}}
+        {{$last_name := ""}}
+        {{with .FormUser}}
+            {{$last_name = .Lastname}}
+        {{end}}
+        <input type='text' name='lastname' value='{{$last_name}}'>
     </div>
     <div>
         <label>Email:</label>
-        <input type='email' name='email' value=''>
+        {{with .Errors}}
+            {{if .Email}}
+                <label class='error'>{{.Email}}</label>
+            {{end}}
+        {{end}}
+        {{$email := ""}}
+        {{with .FormUser}}
+            {{$email = .Email}}
+        {{end}}
+        <input type='email' name='email' value='{{$email}}'>
     </div>
     <div>
         <label>Password:</label>
-        <input type='password' name=''>
+        {{with .Errors}}
+            {{if .Password}}
+                <label class='error'>{{.Password}}</label>
+            {{end}}
+        {{end}}
+        <input type='password' name='password'>
     </div>
     <div>
         <input type='submit' value='Signup'>

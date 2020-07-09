@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"githib.com/VladimirStepanov/snippetbox/pkg/models/mysql"
+	"github.com/gorilla/sessions"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,8 +26,11 @@ func main() {
 	addr := flag.String("addr", ":8080", "Listen addr")
 	logLevel := flag.String("level", "INFO", "Log level")
 	dsn := flag.String("dsn", "root:123@/snippetbox?parseTime=true", "Dsn")
+	key := flag.String("key", "test-123", "Session key")
 
 	flag.Parse()
+
+	sessionStore := sessions.NewCookieStore([]byte(*key))
 
 	log, err := getLogger(*logLevel)
 
@@ -42,7 +46,7 @@ func main() {
 		return
 	}
 
-	serv := New(*addr, log, &mysql.UsersStore{DB: db}, &mysql.SnippetStore{DB: db})
+	serv := New(*addr, log, &mysql.UsersStore{DB: db}, &mysql.SnippetStore{DB: db}, sessionStore)
 
 	if err = serv.Start(); err != nil {
 		log.Errorf("Error while Start server... %v\n", err)

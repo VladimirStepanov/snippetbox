@@ -16,6 +16,7 @@ type templateData struct {
 	Snippets []*models.Snippet
 	Snippet  *models.Snippet
 	User     *models.User
+	FormUser *models.User
 	Errors   validation.Errors
 	Title    string
 	Year     int

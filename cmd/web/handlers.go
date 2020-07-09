@@ -6,6 +6,8 @@ import (
 	"strconv"
 
 	"githib.com/VladimirStepanov/snippetbox/pkg/models"
+	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/gorilla/mux"
 )
 
@@ -35,7 +37,7 @@ func (s *Server) home(w http.ResponseWriter, r *http.Request) {
 		s.serverError(w, err)
 		return
 	}
-	s.render(w, "snippets", &templateData{Title: "Home", Snippets: snippets})
+	s.render(w, r, "snippets", &templateData{Title: "Home", Snippets: snippets})
 }
 
 func (s *Server) showSnippet(w http.ResponseWriter, r *http.Request) {
@@ -59,9 +61,50 @@ func (s *Server) showSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.render(w, "snippet", &templateData{Snippet: snippet})
+	s.render(w, r, "snippet", &templateData{Snippet: snippet})
 }
 
 func (s *Server) signUp(w http.ResponseWriter, r *http.Request) {
-	s.render(w, "signup", &templateData{})
+	s.render(w, r, "signup", &templateData{})
+}
+
+func (s *Server) signUpPOST(w http.ResponseWriter, r *http.Request) {
+	u := &models.User{
+		Firstname: r.FormValue("firstname"),
+		Lastname:  r.FormValue("lastname"),
+		Email:     r.FormValue("email"),
+		Password:  r.FormValue("password"),
+	}
+	errors := validation.ValidateStruct(u,
+		validation.Field(&u.Firstname, validation.Required),
+		validation.Field(&u.Lastname, validation.Required),
+		validation.Field(&u.Email, validation.Required, is.Email),
+		validation.Field(&u.Password, validation.Required, validation.Length(8, 20)),
+	)
+
+	if errors != nil {
+		errMap := errors.(validation.Errors)
+		s.render(w, r, "signup", &templateData{Errors: errMap, FormUser: u})
+		return
+	}
+	_, err := s.userStore.Insert(u.Firstname, u.Lastname, u.Email, u.Password)
+
+	if err == models.ErrDuplicateEmail {
+		if err = s.addFlashMessage(w, r, "User already exists"); err != nil {
+			s.serverError(w, err)
+			return
+		}
+		http.Redirect(w, r, "/user/signup", 303)
+		return
+	} else if err != nil {
+		s.serverError(w, err)
+		return
+	}
+
+	if err := s.addFlashMessage(w, r, "User successfully created! Please log in.. "); err != nil {
+		s.serverError(w, err)
+		return
+	}
+	http.Redirect(w, r, "/", 303)
+
 }

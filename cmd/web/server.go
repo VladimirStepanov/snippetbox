@@ -7,6 +7,7 @@ import (
 
 	"githib.com/VladimirStepanov/snippetbox/pkg/models"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
 	"github.com/sirupsen/logrus"
 )
 
@@ -17,6 +18,7 @@ type Server struct {
 	templateCache map[string]*template.Template
 	userStore     models.UserRepository
 	snippetStore  models.SnippetRepository
+	session       *sessions.CookieStore
 }
 
 //Routes return mux.Router with filled routes
@@ -56,11 +58,12 @@ func (s *Server) Start() error {
 }
 
 //New return new Server instance
-func New(addr string, log *logrus.Logger, ur models.UserRepository, sr models.SnippetRepository) *Server {
+func New(addr string, log *logrus.Logger, ur models.UserRepository, sr models.SnippetRepository, sessionStore *sessions.CookieStore) *Server {
 	return &Server{
 		addr:         addr,
 		log:          log,
 		userStore:    ur,
 		snippetStore: sr,
+		session:      sessionStore,
 	}
 }

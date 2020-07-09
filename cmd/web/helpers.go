@@ -26,3 +26,20 @@ func (s *Server) serverError(w http.ResponseWriter, err error) {
 	s.log.Errorf("Internal error: %v %s", err, string(debug.Stack()))
 	http.Error(w, "Internal error", http.StatusInternalServerError)
 }
+
+func (s *Server) addFlashMessage(w http.ResponseWriter, r *http.Request, message string) error {
+	session, err := s.session.Get(r, "flash")
+	if err != nil {
+		return err
+	}
+
+	session.AddFlash("Hello, flash messages world!")
+
+	err = session.Save(r, w)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}

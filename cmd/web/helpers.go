@@ -33,7 +33,7 @@ func (s *Server) addFlashMessage(w http.ResponseWriter, r *http.Request, message
 		return err
 	}
 
-	session.AddFlash("Hello, flash messages world!")
+	session.AddFlash(message)
 
 	err = session.Save(r, w)
 	if err != nil {
@@ -41,5 +41,25 @@ func (s *Server) addFlashMessage(w http.ResponseWriter, r *http.Request, message
 	}
 
 	return nil
+
+}
+
+func (s *Server) getFlashes(w http.ResponseWriter, r *http.Request) ([]interface{}, error) {
+	session, err := s.session.Get(r, "flash")
+
+	if err != nil {
+		return nil, err
+	}
+
+	flashes := session.Flashes()
+
+	err = session.Save(r, w)
+
+	if err != nil {
+		s.serverError(w, err)
+		return nil, err
+	}
+
+	return flashes, nil
 
 }

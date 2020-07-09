@@ -27,6 +27,9 @@
             {{end}}
         </nav>
         <section>
+            {{range .Flashes}}
+            <div class='flash '>{{.}}</div>
+            {{end}}
             {{template "body" .}}
         </section>
         {{template "footer" .}}

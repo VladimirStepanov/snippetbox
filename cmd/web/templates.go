@@ -18,6 +18,7 @@ type templateData struct {
 	User     *models.User
 	FormUser *models.User
 	Errors   validation.Errors
+	Flashes  []interface{}
 	Title    string
 	Year     int
 }
@@ -39,7 +40,7 @@ func (s *Server) addDefaultData(t *templateData) *templateData {
 }
 
 func (s *Server) render(w http.ResponseWriter, r *http.Request, templateName string, td *templateData) {
-
+	var err error
 	key := fmt.Sprintf("%s.page.html", templateName)
 	val, ok := s.templateCache[key]
 	if !ok {
@@ -47,8 +48,17 @@ func (s *Server) render(w http.ResponseWriter, r *http.Request, templateName str
 		return
 	}
 
+	td = s.addDefaultData(td)
+
+	td.Flashes, err = s.getFlashes(w, r)
+
+	if err != nil {
+		s.serverError(w, err)
+		return
+	}
+
 	buf := new(bytes.Buffer)
-	err := val.ExecuteTemplate(buf, key, s.addDefaultData(td))
+	err = val.ExecuteTemplate(buf, key, td)
 
 	if err != nil {
 		s.serverError(w, err)

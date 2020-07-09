@@ -43,7 +43,7 @@ func getTestSnippetData(startID, count int, isPub bool, oID int64) []*models.Sni
 func NewTestServer(sr models.SnippetRepository, ur models.UserRepository) *Server {
 	logger := logrus.New()
 	logger.SetOutput(ioutil.Discard)
-	return New(":8080", logger, ur, sr)
+	return New(":8080", logger, ur, sr, nil)
 }
 
 //NewTestServerWithUI return *Server object with templateCache

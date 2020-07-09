@@ -29,7 +29,7 @@ func humanDate(t time.Time) string {
 	return t.UTC().Format("02 Jan 2006")
 }
 
-func addDefaultData(t *templateData) *templateData {
+func (s *Server) addDefaultData(t *templateData) *templateData {
 	if t == nil {
 		t = &templateData{}
 	}
@@ -38,7 +38,7 @@ func addDefaultData(t *templateData) *templateData {
 	return t
 }
 
-func (s *Server) render(w http.ResponseWriter, templateName string, td *templateData) {
+func (s *Server) render(w http.ResponseWriter, r *http.Request, templateName string, td *templateData) {
 
 	key := fmt.Sprintf("%s.page.html", templateName)
 	val, ok := s.templateCache[key]
@@ -48,7 +48,7 @@ func (s *Server) render(w http.ResponseWriter, templateName string, td *template
 	}
 
 	buf := new(bytes.Buffer)
-	err := val.ExecuteTemplate(buf, key, addDefaultData(td))
+	err := val.ExecuteTemplate(buf, key, s.addDefaultData(td))
 
 	if err != nil {
 		s.serverError(w, err)

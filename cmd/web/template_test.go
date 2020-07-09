@@ -17,8 +17,9 @@ func TestRenderNotFound(t *testing.T) {
 	s.templateCache = map[string]*template.Template{}
 
 	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/", nil)
 
-	s.render(w, "broken", &templateData{Title: "TestPage"})
+	s.render(w, r, "broken", &templateData{Title: "TestPage"})
 
 	if w.Code != http.StatusInternalServerError {
 		t.Fatalf("Error! %d != %d", w.Code, http.StatusInternalServerError)
@@ -33,8 +34,9 @@ func TestRenderSuccess(t *testing.T) {
 	}
 
 	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/", nil)
 
-	s.render(w, "snippets", &templateData{Title: "TestPage"})
+	s.render(w, r, "snippets", &templateData{Title: "TestPage"})
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("Error! %d != %d", w.Code, http.StatusOK)
@@ -50,8 +52,9 @@ func TestAddDefaultTemplateData(t *testing.T) {
 	}
 
 	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/", nil)
 
-	s.render(w, "snippets", &templateData{Title: title})
+	s.render(w, r, "snippets", &templateData{Title: title})
 
 	if !strings.Contains(w.Body.String(), title) {
 		t.Fatalf("Body doesn't contain %s", title)

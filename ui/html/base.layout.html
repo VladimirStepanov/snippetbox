@@ -13,12 +13,8 @@
             <h1><a href='/'>Snippetbox</a></h1>
         </header>
         <nav>
-            <div>
-                <a href='/'>Home</a>
-                <a href='/snippets'>My snippets</a>
-
-            </div>
             {{if .User}}
+                <a href='/snippets'>My snippets</a>
                 <a href='/snippet/create'>Create snippet</a>
                 <a href='/user/logout'>Logout</a>
             {{else}}

@@ -2,8 +2,6 @@ package main
 
 import (
 	"net/http"
-
-	"github.com/gorilla/mux"
 )
 
 type loggingResponseWriter struct {
@@ -16,7 +14,7 @@ func (lrw *loggingResponseWriter) WriteHeader(code int) {
 	lrw.ResponseWriter.WriteHeader(code)
 }
 
-func (s *Server) loggerMiddleware(next *mux.Router) http.Handler {
+func (s *Server) loggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			lwr := &loggingResponseWriter{w, http.StatusOK}

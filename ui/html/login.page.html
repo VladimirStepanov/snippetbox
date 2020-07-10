@@ -1,0 +1,40 @@
+{{template "base" .}}
+
+{{define "title"}}Login{{end}}
+
+{{define "body"}}
+<form action='/user/login' method='POST' novalidate>
+    <!-- Include the CSRF token -->
+    {{.CSRFField}}
+    {{with .Errors}}
+        {{if .Generic}}
+        <div class='error'>{{.Generic}}</div>
+        {{end}}
+    {{end}}
+    <div>
+        <label>Email:</label>
+        {{with .Errors}}
+            {{if .Email}}
+                <label class='error'>{{.Email}}</label>
+            {{end}}
+        {{end}}
+        {{$email := ""}}
+        {{with .FormUser}}
+            {{$email = .Email}}
+        {{end}}
+        <input type='email' name='email' value='{{$email}}'>
+    </div>
+    <div>
+        <label>Password:</label>
+        {{with .Errors}}
+            {{if .Password}}
+                <label class='error'>{{.Password}}</label>
+            {{end}}
+        {{end}}
+        <input type='password' name='password'>
+    </div>
+    <div>
+        <input type='submit' value='Login'>
+    </div>
+</form>
+{{end}}

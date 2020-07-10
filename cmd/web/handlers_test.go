@@ -33,6 +33,24 @@ func TestHomeHandler(t *testing.T) {
 	}
 }
 
+func TestSignUpOK(t *testing.T) {
+	s, err := NewTestServerWithUI("../../ui/html", &mock.SnippetStore{}, &mock.UsersStore{})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	srv := httptest.NewServer(s.routes())
+
+	defer srv.Close()
+
+	code, _, _ := get(fmt.Sprintf("%s/user/signup", srv.URL), t, srv)
+
+	if code != http.StatusOK {
+		t.Fatalf("Return code %d != %d", code, http.StatusOK)
+	}
+}
+
 func TestHomeHandlerWithData(t *testing.T) {
 
 	um := getTestUserData()

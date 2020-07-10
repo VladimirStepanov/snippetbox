@@ -85,17 +85,21 @@ func (s *Server) signUpPOST(w http.ResponseWriter, r *http.Request) {
 
 	if errors != nil {
 		errMap := errors.(validation.Errors)
-		s.render(w, r, "signup", &templateData{Errors: errMap, FormUser: u})
+		s.render(w, r, "signup", &templateData{Errors: errMap, FormUser: u, CSRFField: csrf.TemplateField(r)})
 		return
 	}
 	_, err := s.userStore.Insert(u.Firstname, u.Lastname, u.Email, u.Password)
 
 	if err == models.ErrDuplicateEmail {
-		if err = s.addFlashMessage(w, r, "User already exists"); err != nil {
-			s.serverError(w, err)
-			return
-		}
-		http.Redirect(w, r, "/user/signup", 303)
+		s.render(
+			w, r,
+			"signup",
+			&templateData{
+				Errors:    validation.Errors{"Email": fmt.Errorf("email already exists")},
+				FormUser:  u,
+				CSRFField: csrf.TemplateField(r),
+			},
+		)
 		return
 	} else if err != nil {
 		s.serverError(w, err)

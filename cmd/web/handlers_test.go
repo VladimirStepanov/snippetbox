@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -164,6 +166,68 @@ func TestShowSnippetForNotAuthUser(t *testing.T) {
 			if test.WantCode == http.StatusOK {
 				if !strings.Contains(string(data), test.WantSnippet.Title) || !strings.Contains(string(data), test.WantSnippet.Content) {
 					t.Fatalf("Want see: %v", test.WantSnippet)
+				}
+			}
+		})
+	}
+}
+
+func TestSignUpForm(t *testing.T) {
+	s, err := NewTestServerWithUI("../../ui/html", &mock.SnippetStore{}, &mock.UsersStore{DB: getTestUserData()})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	srv := NewHttptestServer(t, s.routes())
+	defer srv.Close()
+
+	code, _, data := get(fmt.Sprintf("%s/user/signup", srv.URL), t, srv)
+
+	if code != http.StatusOK {
+		t.Fatalf("Return code %d != %d", code, http.StatusOK)
+	}
+
+	csrfToken := extractCSRFToken(t, data)
+
+	tests := map[string]struct {
+		firstname string
+		lastname  string
+		email     string
+		password  string
+		WantCode  int
+		WantData  []byte
+		csrfToken string
+	}{
+		"Empty firstname":           {"", "1", "vova@mail.com", "123", http.StatusOK, []byte("cannot be blank"), csrfToken},
+		"Empty lastname":            {"1", "", "vova@mail.com", "123", http.StatusOK, []byte("cannot be blank"), csrfToken},
+		"Empty email":               {"1", "2", "", "123", http.StatusOK, []byte("cannot be blank"), csrfToken},
+		"Empty password":            {"1", "2", "v@mail.com", "", http.StatusOK, []byte("cannot be blank"), csrfToken},
+		"Bad email":                 {"1", "2", "v@a", "123", http.StatusOK, []byte("must be a valid email address"), csrfToken},
+		"Email already exists":      {"1", "2", "conor@mail.com", "123345678", http.StatusOK, []byte("email already exists"), csrfToken},
+		"Show password":             {"1", "2", "v@a", "123", http.StatusOK, []byte("the length must be between 8 and 20"), csrfToken},
+		"Bad csrf":                  {"Ivan", "1", "vova@mail.com", "123", http.StatusForbidden, []byte("cannot be blank"), "bad"},
+		"User successfully created": {"Ivan", "1", "vova23@mail.com", "12345678", http.StatusSeeOther, nil, csrfToken},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			formValues := url.Values{}
+			formValues.Add("firstname", test.firstname)
+			formValues.Add("lastname", test.lastname)
+			formValues.Add("email", test.email)
+			formValues.Add("password", test.password)
+			formValues.Add("gorilla.csrf.Token", test.csrfToken)
+
+			code, _, body := postForm(formValues, fmt.Sprintf("%s/user/signup", srv.URL), t, srv)
+
+			if code != test.WantCode {
+				t.Fatalf("Want: %d, Get: %d", test.WantCode, code)
+			}
+
+			if code == http.StatusOK {
+				if !bytes.Contains(body, test.WantData) {
+					t.Fatalf("%s not in result body", string(test.WantData))
 				}
 			}
 		})

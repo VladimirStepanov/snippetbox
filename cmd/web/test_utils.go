@@ -2,9 +2,13 @@ package main
 
 import (
 	"fmt"
+	"html"
 	"io/ioutil"
 	"net/http"
+	"net/http/cookiejar"
 	"net/http/httptest"
+	"net/url"
+	"regexp"
 	"testing"
 	"time"
 
@@ -13,6 +17,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var csrfTokenRX = regexp.MustCompile(`<input type="hidden" name="gorilla.csrf.Token" value="(.+)">`)
 
 func getTestUserData() map[int64]*models.User {
 	um := map[int64]*models.User{}
@@ -38,6 +44,19 @@ func getTestSnippetData(startID, count int, isPub bool, oID int64) []*models.Sni
 	}
 
 	return ss
+}
+
+//NewHttptestServer return new *httptest.Server object with cookie jar
+func NewHttptestServer(t *testing.T, routes http.Handler) *httptest.Server {
+	srv := httptest.NewServer(routes)
+
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	srv.Client().Jar = jar
+
+	return srv
 }
 
 //NewTestServer return *Server test object
@@ -76,4 +95,41 @@ func get(url string, t *testing.T, srv *httptest.Server) (int, http.Header, []by
 	}
 
 	return rs.StatusCode, rs.Header, data
+}
+
+func postForm(formData url.Values, url string, t *testing.T, srv *httptest.Server) (int, http.Header, []byte) {
+
+	client := srv.Client()
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
+	rs, err := client.PostForm(url, formData)
+
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	defer rs.Body.Close()
+
+	data, err := ioutil.ReadAll(rs.Body)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return rs.StatusCode, rs.Header, data
+}
+
+func extractCSRFToken(t *testing.T, body []byte) string {
+	// Use the FindSubmatch method to extract the token from the HTML body.
+	// Note that this returns an array with the entire matched pattern in the
+	// first position, and the values of any captured data in the subsequent
+	// positions.
+	matches := csrfTokenRX.FindSubmatch(body)
+	if len(matches) < 2 {
+		t.Fatal("no csrf token found in body")
+	}
+
+	return html.UnescapeString(string(matches[1]))
 }

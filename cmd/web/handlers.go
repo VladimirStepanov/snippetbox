@@ -69,6 +69,10 @@ func (s *Server) signUp(w http.ResponseWriter, r *http.Request) {
 	s.render(w, r, "signup", &templateData{CSRFField: csrf.TemplateField(r)})
 }
 
+func (s *Server) showLogin(w http.ResponseWriter, r *http.Request) {
+	s.render(w, r, "login", &templateData{CSRFField: csrf.TemplateField(r)})
+}
+
 func (s *Server) signUpPOST(w http.ResponseWriter, r *http.Request) {
 	u := &models.User{
 		Firstname: r.FormValue("firstname"),

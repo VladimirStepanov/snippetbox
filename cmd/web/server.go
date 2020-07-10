@@ -36,6 +36,7 @@ func (s *Server) routes() http.Handler {
 	r.HandleFunc("/snippet/{id:[0-9]+}", s.showSnippet).Methods("GET")
 	r.HandleFunc("/user/signup", s.signUpPOST).Methods("POST")
 	r.HandleFunc("/user/signup", s.signUp).Methods("GET")
+	r.HandleFunc("/user/login", s.showLogin).Methods("GET")
 	return s.loggerMiddleware(CSRF(r))
 }
 

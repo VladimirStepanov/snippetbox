@@ -110,6 +110,6 @@ func (s *Server) signUpPOST(w http.ResponseWriter, r *http.Request) {
 		s.serverError(w, err)
 		return
 	}
-	http.Redirect(w, r, "/", 303)
+	http.Redirect(w, r, "/user/login", 303)
 
 }

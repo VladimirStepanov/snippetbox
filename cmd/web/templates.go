@@ -13,14 +13,15 @@ import (
 )
 
 type templateData struct {
-	Snippets []*models.Snippet
-	Snippet  *models.Snippet
-	User     *models.User
-	FormUser *models.User
-	Errors   validation.Errors
-	Flashes  []interface{}
-	Title    string
-	Year     int
+	Snippets  []*models.Snippet
+	Snippet   *models.Snippet
+	User      *models.User
+	FormUser  *models.User
+	Errors    validation.Errors
+	Flashes   []interface{}
+	CSRFField template.HTML
+	Title     string
+	Year      int
 }
 
 func humanDate(t time.Time) string {

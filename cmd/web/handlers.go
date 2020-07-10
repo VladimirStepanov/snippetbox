@@ -8,6 +8,7 @@ import (
 	"githib.com/VladimirStepanov/snippetbox/pkg/models"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 )
 
@@ -65,7 +66,7 @@ func (s *Server) showSnippet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) signUp(w http.ResponseWriter, r *http.Request) {
-	s.render(w, r, "signup", &templateData{})
+	s.render(w, r, "signup", &templateData{CSRFField: csrf.TemplateField(r)})
 }
 
 func (s *Server) signUpPOST(w http.ResponseWriter, r *http.Request) {

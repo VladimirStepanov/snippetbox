@@ -27,6 +27,7 @@ func main() {
 	logLevel := flag.String("level", "INFO", "Log level")
 	dsn := flag.String("dsn", "root:123@/snippetbox?parseTime=true", "Dsn")
 	key := flag.String("key", "test-123", "Session key")
+	csrfKey := flag.String("csrf_key", "csrfKey", "Csrf key")
 
 	flag.Parse()
 
@@ -46,7 +47,7 @@ func main() {
 		return
 	}
 
-	serv := New(*addr, log, &mysql.UsersStore{DB: db}, &mysql.SnippetStore{DB: db}, sessionStore)
+	serv := New(*addr, log, &mysql.UsersStore{DB: db}, &mysql.SnippetStore{DB: db}, sessionStore, *csrfKey)
 
 	if err = serv.Start(); err != nil {
 		log.Errorf("Error while Start server... %v\n", err)

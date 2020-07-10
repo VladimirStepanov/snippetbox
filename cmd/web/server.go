@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"githib.com/VladimirStepanov/snippetbox/pkg/models"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/sirupsen/logrus"
@@ -19,10 +20,14 @@ type Server struct {
 	userStore     models.UserRepository
 	snippetStore  models.SnippetRepository
 	session       *sessions.CookieStore
+	csrfKey       string
 }
 
 //Routes return mux.Router with filled routes
 func (s *Server) routes() http.Handler {
+
+	CSRF := csrf.Protect([]byte(s.csrfKey), csrf.Secure(false))
+
 	r := mux.NewRouter()
 
 	strPref := http.StripPrefix("/static/", http.FileServer(http.Dir("./ui/static/")))
@@ -31,7 +36,7 @@ func (s *Server) routes() http.Handler {
 	r.HandleFunc("/snippet/{id:[0-9]+}", s.showSnippet).Methods("GET")
 	r.HandleFunc("/user/signup", s.signUpPOST).Methods("POST")
 	r.HandleFunc("/user/signup", s.signUp).Methods("GET")
-	return s.loggerMiddleware(r)
+	return s.loggerMiddleware(CSRF(r))
 }
 
 //Start listen and serve
@@ -58,12 +63,20 @@ func (s *Server) Start() error {
 }
 
 //New return new Server instance
-func New(addr string, log *logrus.Logger, ur models.UserRepository, sr models.SnippetRepository, sessionStore *sessions.CookieStore) *Server {
+func New(
+	addr string,
+	log *logrus.Logger,
+	ur models.UserRepository,
+	sr models.SnippetRepository,
+	sessionStore *sessions.CookieStore,
+	csrfKey string) *Server {
+
 	return &Server{
 		addr:         addr,
 		log:          log,
 		userStore:    ur,
 		snippetStore: sr,
 		session:      sessionStore,
+		csrfKey:      csrfKey,
 	}
 }

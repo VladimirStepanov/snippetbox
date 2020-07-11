@@ -1,9 +1,13 @@
 package main
 
 import (
+	"crypto/md5"
 	"database/sql"
+	"encoding/hex"
+	"fmt"
 	"net/http"
 	"runtime/debug"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -62,4 +66,25 @@ func (s *Server) getFlashes(w http.ResponseWriter, r *http.Request) ([]interface
 
 	return flashes, nil
 
+}
+
+func (s *Server) addNewUserSession(w http.ResponseWriter, r *http.Request, id int64) error {
+	session, err := s.session.Get(r, "SID")
+
+	if err != nil {
+		return err
+	}
+
+	hasher := md5.New()
+
+	hasher.Write([]byte(fmt.Sprintf("%d%s", id, time.Now().String())))
+
+	session.Values["userID"] = id
+	session.Values["userHash"] = hex.EncodeToString(hasher.Sum(nil))
+
+	if err = session.Save(r, w); err != nil {
+		return err
+	}
+
+	return nil
 }

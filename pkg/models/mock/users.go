@@ -59,10 +59,8 @@ func (us *UsersStore) Authenticate(email, password string) (int64, error) {
 	for id, value := range us.DB {
 		if value.Email == email {
 			err := bcrypt.CompareHashAndPassword([]byte(value.HashedPassword), []byte(password))
-			if err == bcrypt.ErrMismatchedHashAndPassword {
+			if err != nil {
 				return 0, models.ErrAuth
-			} else if err != nil {
-				return 0, err
 			}
 
 			return id, nil

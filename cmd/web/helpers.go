@@ -9,6 +9,7 @@ import (
 	"runtime/debug"
 	"time"
 
+	"githib.com/VladimirStepanov/snippetbox/pkg/models"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/sessions"
 )
@@ -97,4 +98,13 @@ func (s *Server) addNewUserSession(w http.ResponseWriter, r *http.Request, id in
 func removeSession(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
 	session.Options.MaxAge = -1
 	session.Save(r, w)
+}
+
+func getAuthUserFromRequest(r *http.Request) *models.User {
+	u, ok := r.Context().Value(contextKeyUser).(*models.User)
+	if !ok {
+		return nil
+	}
+
+	return u
 }

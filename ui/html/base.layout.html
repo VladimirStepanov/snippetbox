@@ -16,7 +16,7 @@
             {{if .User}}
                 <a href='/snippets'>My snippets</a>
                 <a href='/snippet/create'>Create snippet</a>
-                <a href='/user/logout'>Logout</a>
+                <a href='/user/logout?hash={{.LogoutHash}}'>Logout ({{.Firstname}}</a>
             {{else}}
                 <a href='/user/signup'>Signup</a>
                 <a href='/user/login'>Login</a>

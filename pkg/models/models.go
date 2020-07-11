@@ -21,6 +21,7 @@ type User struct {
 	Email          string
 	Password       string
 	HashedPassword []byte
+	LogoutHash     string
 }
 
 //Snippet model for snippets table

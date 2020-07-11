@@ -10,6 +10,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/sessions"
 )
 
 func openDB(dsn string) (*sql.DB, error) {
@@ -84,11 +85,16 @@ func (s *Server) addNewUserSession(w http.ResponseWriter, r *http.Request, id in
 	}
 
 	session.Values["userID"] = id
-	session.Values["userHash"] = hex.EncodeToString(hasher.Sum(nil))
+	session.Values["logoutHash"] = hex.EncodeToString(hasher.Sum(nil))
 
 	if err = session.Save(r, w); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func removeSession(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+	session.Options.MaxAge = -1
+	session.Save(r, w)
 }

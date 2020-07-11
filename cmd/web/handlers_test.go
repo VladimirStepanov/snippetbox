@@ -253,7 +253,8 @@ func TestSignUpForm(t *testing.T) {
 }
 
 func TestLoginForm(t *testing.T) {
-	s, err := NewTestServerWithUI("../../ui/html", &mock.SnippetStore{}, &mock.UsersStore{DB: getTestUserData()})
+	um := getTestUserData()
+	s, err := NewTestServerWithUI("../../ui/html", &mock.SnippetStore{}, &mock.UsersStore{DB: um})
 
 	if err != nil {
 		t.Fatal(err)
@@ -304,5 +305,55 @@ func TestLoginForm(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestAuthUserMiddleware(t *testing.T) {
+	s, err := NewTestServerWithUI("../../ui/html", &mock.SnippetStore{}, &mock.UsersStore{DB: getTestUserData()})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	srv := NewHttptestServer(t, s.routes())
+	defer srv.Close()
+
+	code, _, body := get(fmt.Sprintf("%s/user/login", srv.URL), t, srv)
+
+	if code != http.StatusOK {
+		t.Fatalf("Return code %d != %d for home page", code, http.StatusOK)
+	}
+
+	if bytes.Contains(body, []byte("Logout")) || bytes.Contains(body, []byte("My snippets")) {
+		t.Fatal("'Logout' or 'My snippets' on home page")
+	}
+
+	code, _, body = get(fmt.Sprintf("%s/user/login", srv.URL), t, srv)
+
+	if code != http.StatusOK {
+		t.Fatalf("Return code %d != %d for csrf", code, http.StatusOK)
+	}
+
+	csrfToken := extractCSRFToken(t, body)
+
+	formValues := url.Values{}
+	formValues.Add("email", "conor@mail.com")
+	formValues.Add("password", "12345678")
+	formValues.Add("gorilla.csrf.Token", csrfToken)
+
+	code, _, body = postForm(formValues, fmt.Sprintf("%s/user/login", srv.URL), t, srv)
+
+	if code != http.StatusSeeOther {
+		t.Fatalf("Return code %d != %d for postForm", code, http.StatusSeeOther)
+	}
+
+	code, _, body = get(fmt.Sprintf("%s/user/login", srv.URL), t, srv)
+
+	if code != http.StatusOK {
+		t.Fatalf("Return code %d != %d for home page", code, http.StatusOK)
+	}
+
+	if !bytes.Contains(body, []byte("Logout")) || !bytes.Contains(body, []byte("My snippets")) {
+		t.Fatal("'Logout' or 'My snippets' not on home page")
 	}
 }

@@ -52,6 +52,7 @@ func (s *Server) render(w http.ResponseWriter, r *http.Request, templateName str
 	td = s.addDefaultData(td)
 
 	td.Flashes, err = s.getFlashes(w, r)
+	td.User = getAuthUserFromRequest(r)
 
 	if err != nil {
 		s.serverError(w, err)

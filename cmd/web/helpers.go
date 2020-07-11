@@ -77,7 +77,11 @@ func (s *Server) addNewUserSession(w http.ResponseWriter, r *http.Request, id in
 
 	hasher := md5.New()
 
-	hasher.Write([]byte(fmt.Sprintf("%d%s", id, time.Now().String())))
+	_, err = hasher.Write([]byte(fmt.Sprintf("%d%s", id, time.Now().String())))
+
+	if err != nil {
+		return err
+	}
 
 	session.Values["userID"] = id
 	session.Values["userHash"] = hex.EncodeToString(hasher.Sum(nil))

@@ -224,7 +224,7 @@ func TestSignUpForm(t *testing.T) {
 		"Bad email":                 {"1", "2", "v@a", "123", http.StatusOK, []byte("must be a valid email address"), csrfToken},
 		"Email already exists":      {"1", "2", "conor@mail.com", "123345678", http.StatusOK, []byte("email already exists"), csrfToken},
 		"Show password":             {"1", "2", "v@a", "123", http.StatusOK, []byte("the length must be between 8 and 20"), csrfToken},
-		"Bad csrf":                  {"Ivan", "1", "vova@mail.com", "123", http.StatusForbidden, []byte("cannot be blank"), "bad"},
+		"Bad csrf":                  {"Ivan", "1", "vova@mail.com", "123", http.StatusForbidden, nil, "bad"},
 		"User successfully created": {"Ivan", "1", "vova23@mail.com", "12345678", http.StatusSeeOther, nil, csrfToken},
 	}
 
@@ -238,6 +238,61 @@ func TestSignUpForm(t *testing.T) {
 			formValues.Add("gorilla.csrf.Token", test.csrfToken)
 
 			code, _, body := postForm(formValues, fmt.Sprintf("%s/user/signup", srv.URL), t, srv)
+
+			if code != test.WantCode {
+				t.Fatalf("Want: %d, Get: %d", test.WantCode, code)
+			}
+
+			if code == http.StatusOK {
+				if !bytes.Contains(body, test.WantData) {
+					t.Fatalf("%s not in result body", string(test.WantData))
+				}
+			}
+		})
+	}
+}
+
+func TestLoginForm(t *testing.T) {
+	s, err := NewTestServerWithUI("../../ui/html", &mock.SnippetStore{}, &mock.UsersStore{DB: getTestUserData()})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	srv := NewHttptestServer(t, s.routes())
+	defer srv.Close()
+
+	code, _, data := get(fmt.Sprintf("%s/user/login", srv.URL), t, srv)
+
+	if code != http.StatusOK {
+		t.Fatalf("Return code %d != %d", code, http.StatusOK)
+	}
+
+	csrfToken := extractCSRFToken(t, data)
+
+	tests := map[string]struct {
+		email     string
+		password  string
+		WantCode  int
+		WantData  []byte
+		csrfToken string
+	}{
+		"Empty email":            {"", "123", http.StatusOK, []byte("cannot be blank"), csrfToken},
+		"Empty password":         {"v@mail.com", "", http.StatusOK, []byte("cannot be blank"), csrfToken},
+		"Bad csrf":               {"vova@mail.com", "123", http.StatusForbidden, nil, "bad"},
+		"Bad password":           {"conor@mail.com", "123", http.StatusOK, []byte("Email or password incorrect"), csrfToken},
+		"Bad email":              {"conor1@mail.com", "12345678", http.StatusOK, []byte("Email or password incorrect"), csrfToken},
+		"User successfully auth": {"conor@mail.com", "12345678", http.StatusSeeOther, nil, csrfToken},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			formValues := url.Values{}
+			formValues.Add("email", test.email)
+			formValues.Add("password", test.password)
+			formValues.Add("gorilla.csrf.Token", test.csrfToken)
+
+			code, _, body := postForm(formValues, fmt.Sprintf("%s/user/login", srv.URL), t, srv)
 
 			if code != test.WantCode {
 				t.Fatalf("Want: %d, Get: %d", test.WantCode, code)

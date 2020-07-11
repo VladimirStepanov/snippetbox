@@ -117,3 +117,47 @@ func (s *Server) signUpPOST(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/user/login", 303)
 
 }
+
+func (s *Server) loginPOST(w http.ResponseWriter, r *http.Request) {
+	u := &models.User{
+		Email:    r.FormValue("email"),
+		Password: r.FormValue("password"),
+	}
+
+	errors := validation.ValidateStruct(u,
+		validation.Field(&u.Email, validation.Required),
+		validation.Field(&u.Password, validation.Required),
+	)
+
+	if errors != nil {
+		errMap := errors.(validation.Errors)
+		s.render(w, r, "login", &templateData{Errors: errMap, FormUser: u, CSRFField: csrf.TemplateField(r)})
+		return
+	}
+
+	userID, err := s.userStore.Authenticate(u.Email, u.Password)
+
+	if err == models.ErrAuth {
+		s.render(
+			w, r,
+			"login",
+			&templateData{
+				Errors:    validation.Errors{"Generic": fmt.Errorf("Email or password incorrect")},
+				FormUser:  u,
+				CSRFField: csrf.TemplateField(r),
+			},
+		)
+		return
+	} else if err != nil {
+		s.serverError(w, err)
+		return
+	}
+
+	if err = s.addNewUserSession(w, r, userID); err != nil {
+		s.serverError(w, err)
+		return
+	}
+
+	http.Redirect(w, r, "/", 303)
+
+}

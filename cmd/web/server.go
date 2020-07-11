@@ -38,7 +38,7 @@ func (s *Server) routes() http.Handler {
 	r.HandleFunc("/user/signup", s.signUp).Methods("GET")
 	r.HandleFunc("/user/login", s.showLogin).Methods("GET")
 	r.HandleFunc("/user/login", s.loginPOST).Methods("POST")
-	return s.loggerMiddleware(CSRF(r))
+	return s.loggerMiddleware(s.authUser(CSRF(r)))
 }
 
 //Start listen and serve

@@ -47,8 +47,10 @@ func (us *UsersStore) Insert(firstname, lastname, mail, password string) (int64,
 //Get User from map
 func (us *UsersStore) Get(id int64) (*models.User, error) {
 	if val, ok := us.DB[id]; ok {
-		val.HashedPassword = nil
-		return val, nil
+		retVal := &models.User{}
+		*retVal = *val
+		retVal.HashedPassword = nil
+		return retVal, nil
 	}
 
 	return nil, models.ErrNoRecord
@@ -59,10 +61,11 @@ func (us *UsersStore) Authenticate(email, password string) (int64, error) {
 	for id, value := range us.DB {
 		if value.Email == email {
 			err := bcrypt.CompareHashAndPassword([]byte(value.HashedPassword), []byte(password))
-			if err != nil {
+			if err == bcrypt.ErrMismatchedHashAndPassword {
 				return 0, models.ErrAuth
+			} else if err != nil {
+				return 0, err
 			}
-
 			return id, nil
 		}
 	}

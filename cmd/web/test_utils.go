@@ -46,15 +46,19 @@ func getTestSnippetData(startID, count int, isPub bool, oID int64) []*models.Sni
 	return ss
 }
 
-//NewHttptestServer return new *httptest.Server object with cookie jar
-func NewHttptestServer(t *testing.T, routes http.Handler) *httptest.Server {
-	srv := httptest.NewServer(routes)
-
+func setClearCookieJar(t *testing.T, srv *httptest.Server) {
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	srv.Client().Jar = jar
+}
+
+//NewHttptestServer return new *httptest.Server object with cookie jar
+func NewHttptestServer(t *testing.T, routes http.Handler) *httptest.Server {
+	srv := httptest.NewServer(routes)
+
+	setClearCookieJar(t, srv)
 
 	return srv
 }

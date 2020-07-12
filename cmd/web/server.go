@@ -34,10 +34,10 @@ func (s *Server) routes() http.Handler {
 	r.PathPrefix("/static/").Handler(strPref)
 	r.HandleFunc("/", s.home).Methods("GET")
 	r.HandleFunc("/snippet/{id:[0-9]+}", s.showSnippet).Methods("GET")
-	r.HandleFunc("/user/signup", s.signUpPOST).Methods("POST")
-	r.HandleFunc("/user/signup", s.signUp).Methods("GET")
-	r.HandleFunc("/user/login", s.showLogin).Methods("GET")
-	r.HandleFunc("/user/login", s.loginPOST).Methods("POST")
+	r.Handle("/user/signup", s.accessOnlyNotAuth(http.HandlerFunc(s.signUpPOST))).Methods("POST")
+	r.Handle("/user/signup", s.accessOnlyNotAuth(http.HandlerFunc(s.signUp))).Methods("GET")
+	r.Handle("/user/login", s.accessOnlyNotAuth(http.HandlerFunc(s.showLogin))).Methods("GET")
+	r.Handle("/user/login", s.accessOnlyNotAuth(http.HandlerFunc(s.loginPOST))).Methods("POST")
 	return s.loggerMiddleware(s.authUser(CSRF(r)))
 }
 

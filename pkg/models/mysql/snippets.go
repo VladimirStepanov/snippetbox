@@ -17,7 +17,7 @@ type SnippetStore struct {
 func (s *SnippetStore) Insert(title, content string, expire int, isPublic bool, ownerID int64) (int64, error) {
 	res, err := s.DB.Exec(
 		`INSERT into snippets (title, content, create_date, expiration_date, is_public, owner_id) 
-		VALUES(?, ?, UTC_TIMESTAMP(), DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? DAY), ?, ?)`,
+		VALUES(?, ?, CURDATE(), DATE_ADD(CURDATE(), INTERVAL ? DAY), ?, ?)`,
 		title,
 		content,
 		expire,

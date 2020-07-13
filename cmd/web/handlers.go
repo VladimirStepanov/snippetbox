@@ -161,3 +161,23 @@ func (s *Server) loginPOST(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", 303)
 
 }
+
+func (s *Server) logout(w http.ResponseWriter, r *http.Request) {
+	hash := r.FormValue("hash")
+	currentUser := getAuthUserFromRequest(r)
+
+	if currentUser != nil {
+		if currentUser.LogoutHash == hash {
+			session, err := s.session.Get(r, "SID")
+			if err != nil {
+				s.serverError(w, err)
+				return
+			}
+			removeSession(w, r, session)
+			http.Redirect(w, r, "/user/login", 303)
+			return
+		}
+	}
+
+	http.Redirect(w, r, "/", 303)
+}

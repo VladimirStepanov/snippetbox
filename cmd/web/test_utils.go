@@ -137,3 +137,26 @@ func extractCSRFToken(t *testing.T, body []byte) string {
 
 	return html.UnescapeString(string(matches[1]))
 }
+
+func loginHelper(t *testing.T, srv *httptest.Server) {
+
+	code, _, body := get(fmt.Sprintf("%s/user/login", srv.URL), t, srv)
+
+	if code != http.StatusOK {
+		t.Fatalf("Return code %d != %d for csrf", code, http.StatusOK)
+	}
+
+	csrfToken := extractCSRFToken(t, body)
+
+	formValues := url.Values{}
+	formValues.Add("email", "conor@mail.com")
+	formValues.Add("password", "12345678")
+	formValues.Add("gorilla.csrf.Token", csrfToken)
+
+	code, _, body = postForm(formValues, fmt.Sprintf("%s/user/login", srv.URL), t, srv)
+
+	if code != http.StatusSeeOther {
+		t.Fatalf("Return code %d != %d for postForm", code, http.StatusSeeOther)
+	}
+
+}

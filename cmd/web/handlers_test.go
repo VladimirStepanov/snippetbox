@@ -263,35 +263,45 @@ func TestLoginForm(t *testing.T) {
 	srv := NewHttptestServer(t, s.routes())
 	defer srv.Close()
 
-	code, _, data := get(fmt.Sprintf("%s/user/login", srv.URL), t, srv)
-
-	if code != http.StatusOK {
-		t.Fatalf("Return code %d != %d", code, http.StatusOK)
+	getCsrf := func(s string) string {
+		return s
 	}
 
-	csrfToken := extractCSRFToken(t, data)
+	badCsrf := func(s string) string {
+		return "bad"
+	}
 
 	tests := map[string]struct {
-		email     string
-		password  string
-		WantCode  int
-		WantData  []byte
-		csrfToken string
+		email        string
+		password     string
+		WantCode     int
+		WantData     []byte
+		getCsrfToken func(string) string
 	}{
-		"Empty email":            {"", "123", http.StatusOK, []byte("cannot be blank"), csrfToken},
-		"Empty password":         {"v@mail.com", "", http.StatusOK, []byte("cannot be blank"), csrfToken},
-		"Bad csrf":               {"vova@mail.com", "123", http.StatusForbidden, nil, "bad"},
-		"Bad password":           {"conor@mail.com", "123", http.StatusOK, []byte("Email or password incorrect"), csrfToken},
-		"Bad email":              {"conor1@mail.com", "12345678", http.StatusOK, []byte("Email or password incorrect"), csrfToken},
-		"User successfully auth": {"conor@mail.com", "12345678", http.StatusSeeOther, nil, csrfToken},
+		"User successfully auth": {"conor@mail.com", "12345678", http.StatusSeeOther, nil, getCsrf},
+		"Empty email":            {"", "123", http.StatusOK, []byte("cannot be blank"), getCsrf},
+		"Empty password":         {"v@mail.com", "", http.StatusOK, []byte("cannot be blank"), getCsrf},
+		"Bad csrf":               {"vova@mail.com", "123", http.StatusForbidden, nil, badCsrf},
+		"Bad password":           {"conor@mail.com", "123", http.StatusOK, []byte("Email or password incorrect"), getCsrf},
+		"Bad email":              {"conor1@mail.com", "12345678", http.StatusOK, []byte("Email or password incorrect"), getCsrf},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
+			setClearCookieJar(t, srv)
+
+			code, _, data := get(fmt.Sprintf("%s/user/login", srv.URL), t, srv)
+
+			if code != http.StatusOK {
+				t.Fatalf("Return code %d != %d", code, http.StatusOK)
+			}
+
+			csrfToken := extractCSRFToken(t, data)
+
 			formValues := url.Values{}
 			formValues.Add("email", test.email)
 			formValues.Add("password", test.password)
-			formValues.Add("gorilla.csrf.Token", test.csrfToken)
+			formValues.Add("gorilla.csrf.Token", test.getCsrfToken(csrfToken))
 
 			code, _, body := postForm(formValues, fmt.Sprintf("%s/user/login", srv.URL), t, srv)
 
@@ -318,7 +328,7 @@ func TestAuthUserMiddleware(t *testing.T) {
 	srv := NewHttptestServer(t, s.routes())
 	defer srv.Close()
 
-	code, _, body := get(fmt.Sprintf("%s/user/login", srv.URL), t, srv)
+	code, _, body := get(srv.URL, t, srv)
 
 	if code != http.StatusOK {
 		t.Fatalf("Return code %d != %d for home page", code, http.StatusOK)
@@ -328,26 +338,9 @@ func TestAuthUserMiddleware(t *testing.T) {
 		t.Fatal("'Logout' or 'My snippets' on home page")
 	}
 
-	code, _, body = get(fmt.Sprintf("%s/user/login", srv.URL), t, srv)
+	login(t, srv, "conor@mail.com", "12345678")
 
-	if code != http.StatusOK {
-		t.Fatalf("Return code %d != %d for csrf", code, http.StatusOK)
-	}
-
-	csrfToken := extractCSRFToken(t, body)
-
-	formValues := url.Values{}
-	formValues.Add("email", "conor@mail.com")
-	formValues.Add("password", "12345678")
-	formValues.Add("gorilla.csrf.Token", csrfToken)
-
-	code, _, body = postForm(formValues, fmt.Sprintf("%s/user/login", srv.URL), t, srv)
-
-	if code != http.StatusSeeOther {
-		t.Fatalf("Return code %d != %d for postForm", code, http.StatusSeeOther)
-	}
-
-	code, _, body = get(fmt.Sprintf("%s/user/login", srv.URL), t, srv)
+	code, _, body = get(srv.URL, t, srv)
 
 	if code != http.StatusOK {
 		t.Fatalf("Return code %d != %d for home page", code, http.StatusOK)
@@ -356,4 +349,41 @@ func TestAuthUserMiddleware(t *testing.T) {
 	if !bytes.Contains(body, []byte("Logout")) || !bytes.Contains(body, []byte("My snippets")) {
 		t.Fatal("'Logout' or 'My snippets' not on home page")
 	}
+}
+
+func TestAccessOnlyNotAuth(t *testing.T) {
+	s, err := NewTestServerWithUI("../../ui/html", &mock.SnippetStore{}, &mock.UsersStore{DB: getTestUserData()})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	srv := NewHttptestServer(t, s.routes())
+	defer srv.Close()
+
+	login(t, srv, "conor@mail.com", "12345678")
+
+	tests := map[string]struct {
+		Path     string
+		WantCode int
+	}{
+		"login": {
+			Path:     "/user/login",
+			WantCode: http.StatusSeeOther,
+		},
+		"signup": {
+			Path:     "/user/signup",
+			WantCode: http.StatusSeeOther,
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			code, _, _ := get(fmt.Sprintf("%s%s", srv.URL, test.Path), t, srv)
+			if code != test.WantCode {
+				t.Fatalf("Want: %d, Get: %d", test.WantCode, code)
+			}
+		})
+	}
+
 }

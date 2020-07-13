@@ -70,3 +70,14 @@ func (s *Server) accessOnlyNotAuth(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		})
 }
+
+func (s *Server) accessOnlyAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			if getAuthUserFromRequest(r) == nil {
+				http.Redirect(w, r, "/user/login", 303)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+}

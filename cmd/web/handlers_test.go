@@ -351,7 +351,7 @@ func TestAuthUserMiddleware(t *testing.T) {
 	}
 }
 
-func TestAccessOnlyNotAuth(t *testing.T) {
+func TestAccessOnlyNotAuthMiddleware(t *testing.T) {
 	s, err := NewTestServerWithUI("../../ui/html", &mock.SnippetStore{}, &mock.UsersStore{DB: getTestUserData()})
 
 	if err != nil {
@@ -386,4 +386,61 @@ func TestAccessOnlyNotAuth(t *testing.T) {
 		})
 	}
 
+}
+
+func TestLogout(t *testing.T) {
+	s, err := NewTestServerWithUI("../../ui/html", &mock.SnippetStore{}, &mock.UsersStore{DB: getTestUserData()})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	srv := NewHttptestServer(t, s.routes())
+	defer srv.Close()
+
+	login(t, srv, "conor@mail.com", "12345678")
+	code, _, body := get(srv.URL, t, srv)
+
+	if code != http.StatusOK {
+		t.Fatalf("Return code %d != %d for home page", code, http.StatusOK)
+	}
+
+	logoutHash := extractLogoutHash(t, body)
+
+	tests := map[string]struct {
+		Path       string
+		WantLogout bool
+	}{
+		"empty hash": {
+			Path:       "/user/logout",
+			WantLogout: true,
+		},
+		"bad logout hash": {
+			Path:       "/user/logout?hash=fffeeaa",
+			WantLogout: true,
+		},
+		"logout success": {
+			Path:       "/user/logout?hash=" + logoutHash,
+			WantLogout: false,
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			code, _, _ := get(fmt.Sprintf("%s%s", srv.URL, test.Path), t, srv)
+			if code != http.StatusSeeOther {
+				t.Fatalf("Want: %d, Get: %d", http.StatusSeeOther, code)
+			}
+
+			code, _, body = get(srv.URL, t, srv)
+
+			if code != http.StatusOK {
+				t.Fatalf("Return code %d != %d for home page in tests", code, http.StatusOK)
+			}
+
+			if bytes.Contains(body, []byte("Logout")) != test.WantLogout {
+				t.Fatalf("I want logout: %v, but not", test.WantLogout)
+			}
+		})
+	}
 }

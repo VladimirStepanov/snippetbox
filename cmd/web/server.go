@@ -38,6 +38,7 @@ func (s *Server) routes() http.Handler {
 	r.Handle("/user/signup", s.accessOnlyNotAuth(http.HandlerFunc(s.signUp))).Methods("GET")
 	r.Handle("/user/login", s.accessOnlyNotAuth(http.HandlerFunc(s.showLogin))).Methods("GET")
 	r.Handle("/user/login", s.accessOnlyNotAuth(http.HandlerFunc(s.loginPOST))).Methods("POST")
+	r.Handle("/user/logout", s.accessOnlyAuth(http.HandlerFunc(s.logout))).Methods("GET")
 	return s.loggerMiddleware(s.authUser(CSRF(r)))
 }
 

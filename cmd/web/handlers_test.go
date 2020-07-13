@@ -385,7 +385,6 @@ func TestAccessOnlyNotAuthMiddleware(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestLogout(t *testing.T) {
@@ -398,36 +397,43 @@ func TestLogout(t *testing.T) {
 	srv := NewHttptestServer(t, s.routes())
 	defer srv.Close()
 
-	login(t, srv, "conor@mail.com", "12345678")
-	code, _, body := get(srv.URL, t, srv)
-
-	if code != http.StatusOK {
-		t.Fatalf("Return code %d != %d for home page", code, http.StatusOK)
-	}
-
-	logoutHash := extractLogoutHash(t, body)
-
 	tests := map[string]struct {
-		Path       string
+		Path       func(h string) string
 		WantLogout bool
 	}{
+		"logout success": {
+			Path: func(h string) string {
+				return "/user/logout?hash=" + h
+			},
+			WantLogout: false,
+		},
 		"empty hash": {
-			Path:       "/user/logout",
+			Path: func(h string) string {
+				return "/user/logout"
+			},
 			WantLogout: true,
 		},
 		"bad logout hash": {
-			Path:       "/user/logout?hash=fffeeaa",
+			Path: func(h string) string {
+				return "/user/logout?hash=badhash"
+			},
 			WantLogout: true,
-		},
-		"logout success": {
-			Path:       "/user/logout?hash=" + logoutHash,
-			WantLogout: false,
 		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			code, _, _ := get(fmt.Sprintf("%s%s", srv.URL, test.Path), t, srv)
+			setClearCookieJar(t, srv)
+			login(t, srv, "conor@mail.com", "12345678")
+			code, _, body := get(srv.URL, t, srv)
+
+			if code != http.StatusOK {
+				t.Fatalf("Return code %d != %d for home page", code, http.StatusOK)
+			}
+
+			logoutHash := extractLogoutHash(t, body)
+
+			code, _, _ = get(fmt.Sprintf("%s%s", srv.URL, test.Path(logoutHash)), t, srv)
 			if code != http.StatusSeeOther {
 				t.Fatalf("Want: %d, Get: %d", http.StatusSeeOther, code)
 			}

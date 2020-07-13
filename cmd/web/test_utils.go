@@ -19,6 +19,7 @@ import (
 )
 
 var csrfTokenRX = regexp.MustCompile(`<input type="hidden" name="gorilla.csrf.Token" value="(.+)">`)
+var logoutHashRX = regexp.MustCompile(`<a href='/user/logout?hash=(.+)'>`)
 
 func getTestUserData() map[int64]*models.User {
 	um := map[int64]*models.User{}
@@ -125,14 +126,18 @@ func postForm(formData url.Values, url string, t *testing.T, srv *httptest.Serve
 	return rs.StatusCode, rs.Header, data
 }
 
+func extractLogoutHash(t *testing.T, body []byte) string {
+	return extractFromRE(logoutHashRX, t, body)
+}
+
 func extractCSRFToken(t *testing.T, body []byte) string {
-	// Use the FindSubmatch method to extract the token from the HTML body.
-	// Note that this returns an array with the entire matched pattern in the
-	// first position, and the values of any captured data in the subsequent
-	// positions.
-	matches := csrfTokenRX.FindSubmatch(body)
+	return extractFromRE(csrfTokenRX, t, body)
+}
+
+func extractFromRE(compRE *regexp.Regexp, t *testing.T, body []byte) string {
+	matches := compRE.FindSubmatch(body)
 	if len(matches) < 2 {
-		t.Fatal("no csrf token found in body")
+		t.Fatal("no RE found in body")
 	}
 
 	return html.UnescapeString(string(matches[1]))

@@ -19,7 +19,7 @@ import (
 )
 
 var csrfTokenRX = regexp.MustCompile(`<input type="hidden" name="gorilla.csrf.Token" value="(.+)">`)
-var logoutHashRX = regexp.MustCompile(`<a href='/user/logout?hash=(.+)'>`)
+var logoutHashRX = regexp.MustCompile(`/user/logout\?hash=(.+)'`)
 
 func getTestUserData() map[int64]*models.User {
 	um := map[int64]*models.User{}

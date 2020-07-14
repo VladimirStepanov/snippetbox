@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"githib.com/VladimirStepanov/snippetbox/pkg/models"
 	"githib.com/VladimirStepanov/snippetbox/pkg/models/mock"
 )
 
@@ -164,11 +163,7 @@ func TestShowSnippetForNotAuthUser(t *testing.T) {
 
 	defer srv.Close()
 
-	tests := map[string]struct {
-		WantCode    int
-		WantID      int64
-		WantSnippet *models.Snippet
-	}{
+	tests := map[string]showSnippetData{
 		"ShowSnippet": {
 			WantCode:    http.StatusOK,
 			WantID:      ss[0].ID,
@@ -184,21 +179,7 @@ func TestShowSnippetForNotAuthUser(t *testing.T) {
 		},
 	}
 
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			code, _, data := get(fmt.Sprintf("%s/snippet/%d", srv.URL, test.WantID), t, srv)
-
-			if test.WantCode != code {
-				t.Fatalf("Want code: %d, Get code: %d", test.WantCode, code)
-			}
-
-			if test.WantCode == http.StatusOK {
-				if !strings.Contains(string(data), test.WantSnippet.Title) || !strings.Contains(string(data), test.WantSnippet.Content) {
-					t.Fatalf("Want see: %v", test.WantSnippet)
-				}
-			}
-		})
-	}
+	testShowSnippetPage(t, srv, tests)
 }
 
 func TestSignUpForm(t *testing.T) {

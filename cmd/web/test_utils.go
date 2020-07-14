@@ -29,6 +29,12 @@ type showSnippetsData struct {
 	WantPage string
 }
 
+type showSnippetData struct {
+	WantCode    int
+	WantID      int64
+	WantSnippet *models.Snippet
+}
+
 func getTestUserData() map[int64]*models.User {
 	um := map[int64]*models.User{}
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("12345678"), 14)
@@ -193,6 +199,24 @@ func testSnippetsPage(srv *httptest.Server, t *testing.T, tests map[string]showS
 					if strings.Contains(string(data), val.Title) {
 						t.Fatalf("Want hide:  %v", val)
 					}
+				}
+			}
+		})
+	}
+}
+
+func testShowSnippetPage(t *testing.T, srv *httptest.Server, tests map[string]showSnippetData) {
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			code, _, data := get(fmt.Sprintf("%s/snippet/%d", srv.URL, test.WantID), t, srv)
+
+			if test.WantCode != code {
+				t.Fatalf("Want code: %d, Get code: %d", test.WantCode, code)
+			}
+
+			if test.WantCode == http.StatusOK {
+				if !strings.Contains(string(data), test.WantSnippet.Title) || !strings.Contains(string(data), test.WantSnippet.Content) {
+					t.Fatalf("Want see: %v", test.WantSnippet)
 				}
 			}
 		})

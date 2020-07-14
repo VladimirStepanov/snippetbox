@@ -71,7 +71,8 @@ func TestLoginOK(t *testing.T) {
 	}
 }
 
-func TestHomeHandlerWithData(t *testing.T) {
+// tests for endpoint /
+func TestHomeWithData(t *testing.T) {
 
 	um := getTestUserData()
 	ss := getTestSnippetData(1, 15, true, 1)
@@ -86,12 +87,7 @@ func TestHomeHandlerWithData(t *testing.T) {
 
 	defer srv.Close()
 
-	tests := map[string]struct {
-		WantCode int
-		WantSee  []*models.Snippet
-		WantHide []*models.Snippet
-		WantPage string
-	}{
+	tests := map[string]showSnippetsData{
 		"Bad page number": {
 			WantCode: 500,
 			WantPage: "ff",
@@ -114,28 +110,43 @@ func TestHomeHandlerWithData(t *testing.T) {
 		},
 	}
 
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			code, _, data := get(fmt.Sprintf("%s/?page=%s", srv.URL, test.WantPage), t, srv)
+	testSnippetsPage(srv, t, tests, "/")
+}
 
-			if test.WantCode != code {
-				t.Fatalf("Want code: %d, Get code: %d", test.WantCode, code)
-			}
+//tests for endpoint /snippets
+func TestUserSnippetsWithData(t *testing.T) {
 
-			if test.WantCode == http.StatusOK {
-				for _, val := range test.WantSee {
-					if !strings.Contains(string(data), val.Title) {
-						t.Fatalf("Want see: %v", val)
-					}
-				}
-				for _, val := range test.WantHide {
-					if strings.Contains(string(data), val.Title) {
-						t.Fatalf("Want hide:  %v", val)
-					}
-				}
-			}
-		})
+	um := getTestUserData()
+	ss := append(getTestSnippetData(1, 5, false, 2), getTestSnippetData(6, 3, false, 1)...)
+
+	s, err := NewTestServerWithUI("../../ui/html", &mock.SnippetStore{DB: ss, UsersMap: um}, &mock.UsersStore{DB: um})
+
+	if err != nil {
+		t.Fatal(err)
 	}
+
+	srv := NewHttptestServer(t, s.routes())
+	defer srv.Close()
+
+	login(t, srv, "conor@mail.com", "12345678")
+
+	tests := map[string]showSnippetsData{
+		"Bad page number": {
+			WantCode: 500,
+			WantPage: "ff",
+		},
+		"Negative page number": {
+			WantCode: 500,
+			WantPage: "-1",
+		},
+		"Test first page": {
+			WantCode: 200,
+			WantSee:  ss[:5],
+			WantHide: ss[5:],
+			WantPage: "1",
+		},
+	}
+	testSnippetsPage(srv, t, tests, "/snippets")
 }
 
 func TestShowSnippetForNotAuthUser(t *testing.T) {
@@ -450,3 +461,7 @@ func TestLogout(t *testing.T) {
 		})
 	}
 }
+
+//TESTS FOR /SNIPPETS PAGE
+
+//TESTS FOR PRIVATE SNIPPET

@@ -12,25 +12,31 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func (s *Server) home(w http.ResponseWriter, r *http.Request) {
-	var err error
+func getPage(r *http.Request) (int, error) {
 	page := 1
 	pageStr := r.URL.Query().Get("page")
 
 	if pageStr != "" {
 		retPage, err := strconv.Atoi(pageStr)
 		if err != nil {
-			//Add flash message
-			s.serverError(w, err)
-			return
+			return 0, err
 		}
 
 		if retPage < 1 {
-			s.serverError(w, fmt.Errorf("Page must be greater than zero"))
-			return
+			return 0, fmt.Errorf("Page less than 1")
 		}
 
 		page = retPage
+	}
+
+	return page, nil
+}
+
+func (s *Server) home(w http.ResponseWriter, r *http.Request) {
+	page, err := getPage(r)
+	if err != nil {
+		s.serverError(w, err)
+		return
 	}
 	snippets, err := s.snippetStore.LatestAll(-1, 10, page)
 
@@ -39,6 +45,29 @@ func (s *Server) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.render(w, r, "snippets", &templateData{Title: "Home", Snippets: snippets})
+}
+
+func (s *Server) userSnippets(w http.ResponseWriter, r *http.Request) {
+	page, err := getPage(r)
+	if err != nil {
+		s.serverError(w, err)
+		return
+	}
+
+	u := getAuthUserFromRequest(r)
+
+	if u == nil {
+		http.Redirect(w, r, "/", 303)
+		return
+	}
+
+	snippets, err := s.snippetStore.LatestAll(u.ID, 10, page)
+
+	if err != nil {
+		s.serverError(w, err)
+		return
+	}
+	s.render(w, r, "snippets", &templateData{Title: "My snippets", Snippets: snippets})
 }
 
 func (s *Server) showSnippet(w http.ResponseWriter, r *http.Request) {

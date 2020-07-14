@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -20,6 +21,13 @@ import (
 
 var csrfTokenRX = regexp.MustCompile(`<input type="hidden" name="gorilla.csrf.Token" value="(.+)">`)
 var logoutHashRX = regexp.MustCompile(`/user/logout\?hash=(.+)'`)
+
+type showSnippetsData struct {
+	WantCode int
+	WantSee  []*models.Snippet
+	WantHide []*models.Snippet
+	WantPage string
+}
 
 func getTestUserData() map[int64]*models.User {
 	um := map[int64]*models.User{}
@@ -164,4 +172,29 @@ func login(t *testing.T, srv *httptest.Server, email, password string) {
 		t.Fatalf("Return code %d != %d for postForm", code, http.StatusSeeOther)
 	}
 
+}
+
+func testSnippetsPage(srv *httptest.Server, t *testing.T, tests map[string]showSnippetsData, path string) {
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			code, _, data := get(fmt.Sprintf("%s%s?page=%s", srv.URL, path, test.WantPage), t, srv)
+
+			if test.WantCode != code {
+				t.Fatalf("Want code: %d, Get code: %d", test.WantCode, code)
+			}
+
+			if test.WantCode == http.StatusOK {
+				for _, val := range test.WantSee {
+					if !strings.Contains(string(data), val.Title) {
+						t.Fatalf("Want see: %v", val)
+					}
+				}
+				for _, val := range test.WantHide {
+					if strings.Contains(string(data), val.Title) {
+						t.Fatalf("Want hide:  %v", val)
+					}
+				}
+			}
+		})
+	}
 }

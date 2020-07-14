@@ -182,6 +182,36 @@ func TestShowSnippetForNotAuthUser(t *testing.T) {
 	testShowSnippetPage(t, srv, tests)
 }
 
+func TestShowSnippetForAuthUser(t *testing.T) {
+	um := getTestUserData()
+	ss := append(getTestSnippetData(1, 1, false, 2), getTestSnippetData(3, 1, false, 1)...)
+
+	s, err := NewTestServerWithUI("../../ui/html", &mock.SnippetStore{DB: ss, UsersMap: um}, &mock.UsersStore{DB: um})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	srv := NewHttptestServer(t, s.routes())
+	defer srv.Close()
+
+	login(t, srv, "conor@mail.com", "12345678")
+
+	tests := map[string]showSnippetData{
+		"ShowPrivateSnippet": {
+			WantCode:    http.StatusOK,
+			WantID:      ss[0].ID,
+			WantSnippet: ss[0],
+		},
+		"Private snippet other user": {
+			WantCode: http.StatusNotFound,
+			WantID:   ss[1].ID,
+		},
+	}
+
+	testShowSnippetPage(t, srv, tests)
+}
+
 func TestSignUpForm(t *testing.T) {
 	s, err := NewTestServerWithUI("../../ui/html", &mock.SnippetStore{}, &mock.UsersStore{DB: getTestUserData()})
 

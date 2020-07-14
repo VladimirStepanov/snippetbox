@@ -86,9 +86,11 @@ func (s *Server) showSnippet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !snippet.IsPublic {
-		// check for user session
-		http.NotFound(w, r)
-		return
+		currentUser := getAuthUserFromRequest(r)
+		if currentUser == nil || currentUser.ID != snippet.OwnerID {
+			http.NotFound(w, r)
+			return
+		}
 	}
 
 	s.render(w, r, "snippet", &templateData{Snippet: snippet})

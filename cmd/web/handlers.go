@@ -85,15 +85,22 @@ func (s *Server) showSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	currentUser := getAuthUserFromRequest(r)
+
 	if !snippet.IsPublic {
-		currentUser := getAuthUserFromRequest(r)
 		if currentUser == nil || currentUser.ID != snippet.OwnerID {
 			http.NotFound(w, r)
 			return
 		}
 	}
 
-	s.render(w, r, "snippet", &templateData{Snippet: snippet})
+	var templateUser *models.User
+
+	if currentUser != nil && snippet.OwnerID == currentUser.ID {
+		templateUser = currentUser
+	}
+
+	s.render(w, r, "snippet", &templateData{Snippet: snippet, FormUser: templateUser})
 }
 
 func (s *Server) signUp(w http.ResponseWriter, r *http.Request) {

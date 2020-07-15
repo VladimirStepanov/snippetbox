@@ -34,6 +34,7 @@ func (s *Server) routes() http.Handler {
 	r.PathPrefix("/static/").Handler(strPref)
 	r.HandleFunc("/", s.home).Methods("GET")
 	r.Handle("/snippets", s.accessOnlyAuth(http.HandlerFunc(s.userSnippets))).Methods("GET")
+	r.Handle("/snippet/delete/{id:[0-9]+}", s.accessOnlyAuth(http.HandlerFunc(s.deleteSnippet))).Methods("GET")
 	r.HandleFunc("/snippet/{id:[0-9]+}", s.showSnippet).Methods("GET")
 	r.Handle("/user/signup", s.accessOnlyNotAuth(http.HandlerFunc(s.signUpPOST))).Methods("POST")
 	r.Handle("/user/signup", s.accessOnlyNotAuth(http.HandlerFunc(s.signUp))).Methods("GET")

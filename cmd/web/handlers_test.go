@@ -3,13 +3,17 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"html/template"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
 
+	"githib.com/VladimirStepanov/snippetbox/pkg/models"
 	"githib.com/VladimirStepanov/snippetbox/pkg/models/mock"
+	"github.com/gorilla/sessions"
+	"github.com/sirupsen/logrus"
 )
 
 func TestHomeHandler(t *testing.T) {
@@ -473,6 +477,108 @@ func TestLogout(t *testing.T) {
 	}
 }
 
-//TESTS FOR /SNIPPETS PAGE
+func TestDelete(t *testing.T) {
 
-//TESTS FOR PRIVATE SNIPPET
+	um := getTestUserData()
+	ss := append(getTestSnippetData(1, 5, false, 2), getTestSnippetData(6, 3, false, 1)...)
+
+	s, err := NewTestServerWithUI("../../ui/html", &mock.SnippetStore{DB: ss, UsersMap: um}, &mock.UsersStore{DB: um})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	srv := NewHttptestServer(t, s.routes())
+	defer srv.Close()
+	login(t, srv, "conor@mail.com", "12345678")
+
+	code, _, body := get(srv.URL, t, srv)
+
+	if code != http.StatusOK {
+		t.Fatalf("Return code %d != %d for home page", code, http.StatusOK)
+	}
+
+	logoutHash := extractLogoutHash(t, body)
+
+	tests := map[string]struct {
+		WantID   int64
+		WantCode int
+		Path     func(h string, id int64) string
+	}{
+		"Delete with empty hash": {
+			WantID:   ss[0].ID,
+			WantCode: http.StatusNotFound,
+			Path: func(h string, id int64) string {
+				return fmt.Sprintf("/snippet/delete/%d", id)
+			},
+		},
+		"Delete with bad hash": {
+			WantID:   ss[0].ID,
+			WantCode: http.StatusNotFound,
+			Path: func(h string, id int64) string {
+				return fmt.Sprintf("/snippet/delete/%d?hash=123", id)
+			},
+		},
+		"Delete not my own snippet": {
+			WantID:   ss[7].ID,
+			WantCode: http.StatusNotFound,
+			Path: func(h string, id int64) string {
+				return fmt.Sprintf("/snippet/delete/%d?hash=%s", id, h)
+			},
+		},
+		"Success delete": {
+			WantID:   ss[0].ID,
+			WantCode: http.StatusSeeOther,
+			Path: func(h string, id int64) string {
+				return fmt.Sprintf("/snippet/delete/%d?hash=%s", id, h)
+			},
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			code, _, _ = get(fmt.Sprintf("%s%s", srv.URL, test.Path(logoutHash, test.WantID)), t, srv)
+
+			if code != test.WantCode {
+				t.Fatalf("Error! Want %d, get %d", test.WantCode, code)
+			}
+		})
+	}
+}
+
+func TestServer_deleteSnippet(t *testing.T) {
+	type fields struct {
+		addr          string
+		log           *logrus.Logger
+		templateCache map[string]*template.Template
+		userStore     models.UserRepository
+		snippetStore  models.SnippetRepository
+		session       *sessions.CookieStore
+		csrfKey       string
+	}
+	type args struct {
+		w http.ResponseWriter
+		r *http.Request
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &Server{
+				addr:          tt.fields.addr,
+				log:           tt.fields.log,
+				templateCache: tt.fields.templateCache,
+				userStore:     tt.fields.userStore,
+				snippetStore:  tt.fields.snippetStore,
+				session:       tt.fields.session,
+				csrfKey:       tt.fields.csrfKey,
+			}
+			s.deleteSnippet(tt.args.w, tt.args.r)
+		})
+	}
+}

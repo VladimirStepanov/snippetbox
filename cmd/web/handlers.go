@@ -219,3 +219,26 @@ func (s *Server) logout(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/", 303)
 }
+
+func (s *Server) deleteSnippet(w http.ResponseWriter, r *http.Request) {
+	hash := r.FormValue("hash")
+	currentUser := getAuthUserFromRequest(r)
+
+	vars := mux.Vars(r)
+	id, _ := strconv.Atoi(vars["id"])
+
+	if currentUser.LogoutHash == hash {
+		if err := s.snippetStore.Delete(int64(id), currentUser.ID); err == models.ErrNoRecord {
+			http.NotFound(w, r)
+			return
+		} else if err != nil {
+			s.serverError(w, err)
+			return
+		}
+	} else {
+		http.NotFound(w, r)
+		return
+	}
+
+	http.Redirect(w, r, "/", 303)
+}

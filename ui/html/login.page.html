@@ -6,17 +6,13 @@
 <form action='/user/login' method='POST' novalidate>
     <!-- Include the CSRF token -->
     {{.CSRFField}}
-    {{with .Errors}}
-        {{if .Generic}}
-        <div class='error'>{{.Generic}}</div>
-        {{end}}
+    {{if getError .Errors "Generic"}}
+        <label class='error'>{{getError .Errors "Generic"}}</label>
     {{end}}
     <div>
         <label>Email:</label>
-        {{with .Errors}}
-            {{if .Email}}
-                <label class='error'>{{.Email}}</label>
-            {{end}}
+        {{if getError .Errors "Email"}}
+            <label class='error'>{{getError .Errors "Email"}}</label>
         {{end}}
         {{$email := ""}}
         {{with .FormUser}}
@@ -26,10 +22,8 @@
     </div>
     <div>
         <label>Password:</label>
-        {{with .Errors}}
-            {{if .Password}}
-                <label class='error'>{{.Password}}</label>
-            {{end}}
+        {{if getError .Errors "Password"}}
+            <label class='error'>{{getError .Errors "Password"}}</label>
         {{end}}
         <input type='password' name='password'>
     </div>

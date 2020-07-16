@@ -5,50 +5,40 @@
 {{define "body"}}
 <form action='/user/signup' method='POST'>
     <div>
-        <label>Firstname:</label>
-        {{with .Errors}}
-            {{if .Firstname}}
-                <label class='error'>{{.Firstname}}</label>
-            {{end}}
-        {{end}}
         {{$first_name := ""}}
+        {{$last_name := ""}}
+        {{$email := ""}}
         {{with .FormUser}}
             {{$first_name = .Firstname}}
+            {{$last_name = .Lastname}}
+            {{$email = .Email}}
+        {{end}}
+
+
+        <label>Firstname:</label>
+        {{if getError .Errors "Firstname"}}
+            <label class='error'>{{getError .Errors "Firstname"}}</label>
         {{end}}
         <input type='text' name='firstname' value='{{$first_name}}'>
     </div>
     <div>
         <label>Lastname:</label>
-        {{with .Errors}}
-            {{if .Lastname}}
-                <label class='error'>{{.Lastname}}</label>
-            {{end}}
-        {{end}}
-        {{$last_name := ""}}
-        {{with .FormUser}}
-            {{$last_name = .Lastname}}
+        {{if getError .Errors "Lastname"}}
+            <label class='error'>{{getError .Errors "Lastname"}}</label>
         {{end}}
         <input type='text' name='lastname' value='{{$last_name}}'>
     </div>
     <div>
         <label>Email:</label>
-        {{with .Errors}}
-            {{if .Email}}
-                <label class='error'>{{.Email}}</label>
-            {{end}}
-        {{end}}
-        {{$email := ""}}
-        {{with .FormUser}}
-            {{$email = .Email}}
+        {{if getError .Errors "Email"}}
+            <label class='error'>{{getError .Errors "Email"}}</label>
         {{end}}
         <input type='email' name='email' value='{{$email}}'>
     </div>
     <div>
         <label>Password:</label>
-        {{with .Errors}}
-            {{if .Password}}
-                <label class='error'>{{.Password}}</label>
-            {{end}}
+        {{if getError .Errors "Password"}}
+            <label class='error'>{{getError .Errors "Password"}}</label>
         {{end}}
         <input type='password' name='password'>
     </div>

@@ -24,6 +24,14 @@ type templateData struct {
 	Year      int
 }
 
+func getError(errMap validation.Errors, key string) string {
+	if value, ok := errMap[key]; ok {
+		return value.Error()
+	}
+
+	return ""
+}
+
 func humanDate(t time.Time) string {
 	if t.IsZero() {
 		return ""
@@ -74,6 +82,7 @@ func newTemplateCache(dir string) (map[string]*template.Template, error) {
 
 	funcMap := template.FuncMap{
 		"humanDate": humanDate,
+		"getError":  getError,
 	}
 
 	res := map[string]*template.Template{}

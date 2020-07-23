@@ -12,16 +12,24 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation"
 )
 
+type snippetForm struct {
+	Title   string
+	Content string
+	Expire  string
+	Type    string
+}
+
 type templateData struct {
-	Snippets  []*models.Snippet
-	Snippet   *models.Snippet
-	User      *models.User
-	FormUser  *models.User
-	Errors    validation.Errors
-	Flashes   []interface{}
-	CSRFField template.HTML
-	Title     string
-	Year      int
+	Snippets    []*models.Snippet
+	Snippet     *models.Snippet
+	User        *models.User
+	FormUser    *models.User
+	FormSnippet *snippetForm
+	Errors      validation.Errors
+	Flashes     []interface{}
+	CSRFField   template.HTML
+	Title       string
+	Year        int
 }
 
 func getError(errMap validation.Errors, key string) string {

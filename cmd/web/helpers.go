@@ -19,12 +19,8 @@ func validateInteger(value interface{}) error {
 	s, _ := value.(string)
 
 	num, err := strconv.Atoi(s)
-	if err != nil {
-		return err
-	}
-
-	if num < 1 {
-		return fmt.Errorf("Value must be greater than zero")
+	if err != nil || num < 1 {
+		return fmt.Errorf("value must be integer greater than zero")
 	}
 
 	return nil

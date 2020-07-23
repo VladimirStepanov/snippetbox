@@ -7,12 +7,28 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"strconv"
 	"time"
 
 	"githib.com/VladimirStepanov/snippetbox/pkg/models"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/sessions"
 )
+
+func validateInteger(value interface{}) error {
+	s, _ := value.(string)
+
+	num, err := strconv.Atoi(s)
+	if err != nil {
+		return err
+	}
+
+	if num < 1 {
+		return fmt.Errorf("Value must be greater than zero")
+	}
+
+	return nil
+}
 
 func openDB(dsn string) (*sql.DB, error) {
 	db, err := sql.Open("mysql", dsn)

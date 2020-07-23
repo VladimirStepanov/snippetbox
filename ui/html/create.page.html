@@ -1,0 +1,52 @@
+{{template "base" .}}
+
+{{define "title"}}{{.Title}}{{end}}
+{{define "body"}}
+    <form action='/snippet/create' method='POST'>
+        {{.CSRFField}}
+
+        {{$title := ""}}
+        {{$content := ""}}
+        {{$expire := ""}}
+        {{with .FormSnippet}}
+            {{$title = .Title}}
+            {{$content = .Content}}
+            {{$expire = .Expire}}
+        {{end}}
+
+        <div>
+            <label>Title:</label>
+            {{if getError .Errors "Title"}}
+                <label class='error'>{{getError .Errors "Title"}}</label>
+            {{end}}
+            <input type='text' name='title' value='{{$title}}'>
+        </div>
+        <div>
+            <label>Content:</label>
+            {{if getError .Errors "Content"}}
+                <label class='error'>{{getError .Errors "Content"}}</label>
+            {{end}}
+            <textarea name='content'>{{$content}}</textarea>
+        </div>
+        <div>
+            {{if getError .Errors "Expire"}}
+                <label class='error'>{{getError .Errors "Expire"}}</label>
+            {{end}}
+            <label>Input expire days:</label>
+            <input type="number" name="expire" min="1" value="{{$expire}}">
+        </div>
+        <div>
+            {{if getError .Errors "Type"}}
+                <label class='error'>{{getError .Errors "Type"}}</label>
+            {{end}}
+            <label>Choose snippet type:</label>
+            <select name="type">
+                <option>Public</option>
+                <option>Private</option>
+            </select>
+        </div>
+        <div>
+            <input type='submit' value='{{.Title}}'>
+        </div>
+    </form>
+{{end}}

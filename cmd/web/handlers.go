@@ -240,3 +240,61 @@ func (s *Server) deleteSnippet(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/", 303)
 }
+
+func (s *Server) createSnippet(w http.ResponseWriter, r *http.Request) {
+	s.render(w, r, "create", &templateData{Title: "Create snippet", CSRFField: csrf.TemplateField(r)})
+}
+
+func (s *Server) createPOST(w http.ResponseWriter, r *http.Request) {
+
+	sForm := &snippetForm{
+		Title:   r.FormValue("title"),
+		Content: r.FormValue("content"),
+		Expire:  r.FormValue("expire"),
+		Type:    r.FormValue("type"),
+	}
+
+	errors := validation.ValidateStruct(sForm,
+		validation.Field(&sForm.Title, validation.Required),
+		validation.Field(&sForm.Content, validation.Required),
+		validation.Field(&sForm.Expire, validation.Required, validation.By(validateInteger)),
+		validation.Field(&sForm.Type, validation.Required, validation.In("Public", "Private")),
+	)
+
+	if errors != nil {
+		errMap := errors.(validation.Errors)
+		s.render(
+			w, r,
+			"create",
+			&templateData{
+				Title:       "Create snippet",
+				Errors:      errMap,
+				FormSnippet: sForm,
+				CSRFField:   csrf.TemplateField(r)})
+
+		return
+	}
+
+	currentUser := getAuthUserFromRequest(r)
+
+	expire, err := strconv.Atoi(sForm.Expire)
+
+	if err != nil {
+		s.serverError(w, err)
+		return
+	}
+
+	snippetType := true
+	if sForm.Type == "Private" {
+		snippetType = false
+	}
+
+	_, err = s.snippetStore.Insert(sForm.Title, sForm.Content, expire, snippetType, currentUser.ID)
+
+	if err != nil {
+		s.serverError(w, err)
+		return
+	}
+
+	http.Redirect(w, r, "/snippets", 303)
+}

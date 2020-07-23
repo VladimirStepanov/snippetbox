@@ -582,3 +582,70 @@ func TestServer_deleteSnippet(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateSnippetForm(t *testing.T) {
+	um := getTestUserData()
+	ss := append(getTestSnippetData(1, 5, false, 2))
+
+	s, err := NewTestServerWithUI("../../ui/html", &mock.SnippetStore{DB: ss, UsersMap: um}, &mock.UsersStore{DB: um})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	srv := NewHttptestServer(t, s.routes())
+	defer srv.Close()
+	login(t, srv, "conor@mail.com", "12345678")
+
+	code, _, data := get(fmt.Sprintf("%s/snippet/create", srv.URL), t, srv)
+
+	if code != http.StatusOK {
+		t.Fatalf("Return code %d != %d", code, http.StatusOK)
+	}
+
+	csrfToken := extractCSRFToken(t, data)
+
+	tests := map[string]struct {
+		title       string
+		content     string
+		expire      string
+		snippetType string
+		WantCode    int
+		WantData    []byte
+		csrfToken   string
+	}{
+		"Bad csrf token":                    {"1", "2", "3", "4", http.StatusForbidden, nil, "bad"},
+		"Empty title":                       {"", "2", "3", "4", http.StatusOK, []byte("cannot be blank"), csrfToken},
+		"Empty content":                     {"1", "", "3", "4", http.StatusOK, []byte("cannot be blank"), csrfToken},
+		"Empty expire":                      {"1", "2", "", "4", http.StatusOK, []byte("cannot be blank"), csrfToken},
+		"Empty type":                        {"1", "2", "3", "", http.StatusOK, []byte("cannot be blank"), csrfToken},
+		"Type not in ['Public', 'Private']": {"1", "2", "3", "Bad", http.StatusOK, []byte("must be a valid value"), csrfToken},
+		"Negative expire":                   {"1", "2", "-3", "4", http.StatusOK, []byte("value must be integer greater than zero"), csrfToken},
+		"Bad expire":                        {"1", "2", "ff", "4", http.StatusOK, []byte("value must be integer greater than zero"), csrfToken},
+		"Success create private":            {"title", "content", "150", "Private", http.StatusSeeOther, nil, csrfToken},
+		"Success create public":             {"title", "content", "150", "Public", http.StatusSeeOther, nil, csrfToken},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			formValues := url.Values{}
+			formValues.Add("title", test.title)
+			formValues.Add("content", test.content)
+			formValues.Add("expire", test.expire)
+			formValues.Add("type", test.snippetType)
+			formValues.Add("gorilla.csrf.Token", test.csrfToken)
+
+			code, _, body := postForm(formValues, fmt.Sprintf("%s/snippet/create", srv.URL), t, srv)
+
+			if code != test.WantCode {
+				t.Fatalf("Want: %d, Get: %d", test.WantCode, code)
+			}
+
+			if code == http.StatusOK {
+				if !bytes.Contains(body, test.WantData) {
+					t.Fatalf("%s not in result body", string(test.WantData))
+				}
+			}
+		})
+	}
+}

@@ -33,6 +33,7 @@
             {{end}}
             <textarea name='content'>{{$content}}</textarea>
         </div>
+        {{if not .IsEdit}}
         <div>
             {{if getError .Errors "Expire"}}
                 <label class='error'>{{getError .Errors "Expire"}}</label>
@@ -40,6 +41,7 @@
             <label>Input expire days:</label>
             <input type="number" name="expire" min="1" value="{{$expire}}">
         </div>
+        {{end}}
         <div>
             {{if getError .Errors "Type"}}
                 <label class='error'>{{getError .Errors "Type"}}</label>

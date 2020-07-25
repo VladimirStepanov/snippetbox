@@ -2,7 +2,7 @@
 
 {{define "title"}}{{.Title}}{{end}}
 {{define "body"}}
-    <form action='/snippet/create' method='POST'>
+    <form action='{{.FormAction}}' method='POST'>
         {{.CSRFField}}
 
         {{$title := ""}}

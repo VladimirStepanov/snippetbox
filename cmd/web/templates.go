@@ -29,6 +29,7 @@ type templateData struct {
 	Flashes     []interface{}
 	CSRFField   template.HTML
 	IsEdit      bool
+	FormAction  string //form action for create and edit
 	Title       string
 	Year        int
 }

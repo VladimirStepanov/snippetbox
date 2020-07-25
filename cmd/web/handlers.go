@@ -242,7 +242,7 @@ func (s *Server) deleteSnippet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) createSnippet(w http.ResponseWriter, r *http.Request) {
-	s.render(w, r, "create", &templateData{Title: "Create snippet", CSRFField: csrf.TemplateField(r)})
+	s.render(w, r, "create", &templateData{Title: "Create snippet", CSRFField: csrf.TemplateField(r), FormAction: "/snippet/create"})
 }
 
 func (s *Server) createPOST(w http.ResponseWriter, r *http.Request) {
@@ -270,6 +270,7 @@ func (s *Server) createPOST(w http.ResponseWriter, r *http.Request) {
 				Title:       "Create snippet",
 				Errors:      errMap,
 				FormSnippet: sForm,
+				FormAction:  "/snippet/create",
 				CSRFField:   csrf.TemplateField(r)})
 
 		return
@@ -342,5 +343,59 @@ func (s *Server) editSnippet(w http.ResponseWriter, r *http.Request) {
 			IsEdit:      true,
 			Title:       "Edit snippet",
 			FormSnippet: sForm,
+			FormAction:  "/snippet/edit/" + fmt.Sprintf("%d", id),
 			CSRFField:   csrf.TemplateField(r)})
+}
+
+func (s *Server) editPOST(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, _ := strconv.Atoi(vars["id"])
+
+	sForm := &snippetForm{
+		Title:   r.FormValue("title"),
+		Content: r.FormValue("content"),
+		Type:    r.FormValue("type"),
+	}
+
+	errors := validation.ValidateStruct(sForm,
+		validation.Field(&sForm.Title, validation.Required),
+		validation.Field(&sForm.Content, validation.Required),
+		validation.Field(&sForm.Type, validation.Required, validation.In("Public", "Private")),
+	)
+
+	if errors != nil {
+		s.render(
+			w, r,
+			"create",
+			&templateData{
+				IsEdit:      true,
+				Title:       "Edit snippet",
+				FormSnippet: sForm,
+				Errors:      errors.(validation.Errors),
+				FormAction:  "/snippet/edit/" + fmt.Sprintf("%d", id),
+				CSRFField:   csrf.TemplateField(r)})
+		return
+	}
+	currentUser := getAuthUserFromRequest(r)
+
+	snippetType := true
+	if sForm.Type == "Private" {
+		snippetType = false
+	}
+
+	err := s.snippetStore.Update(
+		&models.Snippet{ID: int64(id), Title: sForm.Title, Content: sForm.Content, IsPublic: snippetType},
+		currentUser.ID,
+	)
+
+	if err != nil {
+		if err == models.ErrNoRecord {
+			http.NotFound(w, r)
+		} else {
+			s.serverError(w, err)
+		}
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/snippet/%d", id), 303)
 }

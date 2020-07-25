@@ -699,3 +699,65 @@ func TestGetEditPage(t *testing.T) {
 		})
 	}
 }
+
+func TestEditSnippetForm(t *testing.T) {
+	um := getTestUserData()
+	ss := append(getTestSnippetData(1, 5, false, 2))
+
+	s, err := NewTestServerWithUI("../../ui/html", &mock.SnippetStore{DB: ss, UsersMap: um}, &mock.UsersStore{DB: um})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	srv := NewHttptestServer(t, s.routes())
+	defer srv.Close()
+	login(t, srv, "conor@mail.com", "12345678")
+
+	code, _, data := get(fmt.Sprintf("%s/snippet/create", srv.URL), t, srv)
+
+	if code != http.StatusOK {
+		t.Fatalf("Return code %d != %d", code, http.StatusOK)
+	}
+
+	csrfToken := extractCSRFToken(t, data)
+
+	tests := map[string]struct {
+		title       string
+		content     string
+		snippetType string
+		WantCode    int
+		WantData    []byte
+		csrfToken   string
+		WantID      int64
+	}{
+		"Bad csrf token":                    {"1", "2", "3", http.StatusForbidden, nil, "bad", ss[0].ID},
+		"Empty title":                       {"", "2", "4", http.StatusOK, []byte("cannot be blank"), csrfToken, ss[0].ID},
+		"Empty content":                     {"1", "", "4", http.StatusOK, []byte("cannot be blank"), csrfToken, ss[0].ID},
+		"Empty type":                        {"1", "2", "", http.StatusOK, []byte("cannot be blank"), csrfToken, ss[0].ID},
+		"Type not in ['Public', 'Private']": {"1", "2", "Bad", http.StatusOK, []byte("must be a valid value"), csrfToken, ss[0].ID},
+		"Edit not found":                    {"1", "2", "Private", http.StatusNotFound, nil, csrfToken, 10050},
+		"Success edit":                      {"title", "content", "Private", http.StatusSeeOther, nil, csrfToken, ss[0].ID},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			formValues := url.Values{}
+			formValues.Add("title", test.title)
+			formValues.Add("content", test.content)
+			formValues.Add("type", test.snippetType)
+			formValues.Add("gorilla.csrf.Token", test.csrfToken)
+			code, _, body := postForm(formValues, fmt.Sprintf("%s/snippet/edit/%d", srv.URL, test.WantID), t, srv)
+
+			if code != test.WantCode {
+				t.Fatalf("Want: %d, Get: %d", test.WantCode, code)
+			}
+
+			if code == http.StatusOK {
+				if !bytes.Contains(body, test.WantData) {
+					t.Fatalf("%s not in result body", string(test.WantData))
+				}
+			}
+		})
+	}
+}

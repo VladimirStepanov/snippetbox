@@ -8,10 +8,15 @@
         {{$title := ""}}
         {{$content := ""}}
         {{$expire := ""}}
+        {{$selected_private := ""}}
         {{with .FormSnippet}}
             {{$title = .Title}}
             {{$content = .Content}}
             {{$expire = .Expire}}
+
+            {{if (eq .Type "Private")}}
+                {{$selected_private = "selected"}}
+            {{end}}
         {{end}}
 
         <div>
@@ -42,7 +47,7 @@
             <label>Choose snippet type:</label>
             <select name="type">
                 <option>Public</option>
-                <option>Private</option>
+                <option {{$selected_private}}>Private</option>
             </select>
         </div>
         <div>

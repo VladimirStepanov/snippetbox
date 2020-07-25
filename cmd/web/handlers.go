@@ -298,3 +298,49 @@ func (s *Server) createPOST(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/snippets", 303)
 }
+
+func (s *Server) editSnippet(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, _ := strconv.Atoi(vars["id"])
+
+	snippet, err := s.snippetStore.Get(int64(id))
+
+	if err != nil {
+		if err == models.ErrNoRecord {
+			http.NotFound(w, r)
+		} else {
+			s.serverError(w, err)
+		}
+		return
+	}
+
+	currentUser := getAuthUserFromRequest(r)
+
+	if snippet.OwnerID != currentUser.ID {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	snippetType := "Private"
+	if snippet.IsPublic {
+		snippetType = "Public"
+	}
+
+	diffDate := snippet.Expires.Sub(snippet.Created).Hours() / 24
+
+	sForm := &snippetForm{
+		Title:   snippet.Title,
+		Content: snippet.Content,
+		Expire:  fmt.Sprintf("%d", int(diffDate)),
+		Type:    snippetType,
+	}
+
+	s.render(
+		w, r,
+		"create",
+		&templateData{
+			IsEdit:      true,
+			Title:       "Edit snippet",
+			FormSnippet: sForm,
+			CSRFField:   csrf.TemplateField(r)})
+}

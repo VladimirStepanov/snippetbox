@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"html/template"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -12,8 +11,6 @@ import (
 
 	"githib.com/VladimirStepanov/snippetbox/pkg/models"
 	"githib.com/VladimirStepanov/snippetbox/pkg/models/mock"
-	"github.com/gorilla/sessions"
-	"github.com/sirupsen/logrus"
 )
 
 func TestHomeHandler(t *testing.T) {
@@ -546,42 +543,42 @@ func TestDelete(t *testing.T) {
 	}
 }
 
-func TestServer_deleteSnippet(t *testing.T) {
-	type fields struct {
-		addr          string
-		log           *logrus.Logger
-		templateCache map[string]*template.Template
-		userStore     models.UserRepository
-		snippetStore  models.SnippetRepository
-		session       *sessions.CookieStore
-		csrfKey       string
-	}
-	type args struct {
-		w http.ResponseWriter
-		r *http.Request
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &Server{
-				addr:          tt.fields.addr,
-				log:           tt.fields.log,
-				templateCache: tt.fields.templateCache,
-				userStore:     tt.fields.userStore,
-				snippetStore:  tt.fields.snippetStore,
-				session:       tt.fields.session,
-				csrfKey:       tt.fields.csrfKey,
-			}
-			s.deleteSnippet(tt.args.w, tt.args.r)
-		})
-	}
-}
+// func TestServer_deleteSnippet(t *testing.T) {
+// 	type fields struct {
+// 		addr          string
+// 		log           *logrus.Logger
+// 		templateCache map[string]*template.Template
+// 		userStore     models.UserRepository
+// 		snippetStore  models.SnippetRepository
+// 		session       *sessions.CookieStore
+// 		csrfKey       string
+// 	}
+// 	type args struct {
+// 		w http.ResponseWriter
+// 		r *http.Request
+// 	}
+// 	tests := []struct {
+// 		name   string
+// 		fields fields
+// 		args   args
+// 	}{
+// 		// TODO: Add test cases.
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			s := &Server{
+// 				addr:          tt.fields.addr,
+// 				log:           tt.fields.log,
+// 				templateCache: tt.fields.templateCache,
+// 				userStore:     tt.fields.userStore,
+// 				snippetStore:  tt.fields.snippetStore,
+// 				session:       tt.fields.session,
+// 				csrfKey:       tt.fields.csrfKey,
+// 			}
+// 			s.deleteSnippet(tt.args.w, tt.args.r)
+// 		})
+// 	}
+// }
 
 func TestCreateSnippetForm(t *testing.T) {
 	um := getTestUserData()
@@ -644,6 +641,59 @@ func TestCreateSnippetForm(t *testing.T) {
 			if code == http.StatusOK {
 				if !bytes.Contains(body, test.WantData) {
 					t.Fatalf("%s not in result body", string(test.WantData))
+				}
+			}
+		})
+	}
+}
+
+func TestGetEditPage(t *testing.T) {
+	um := getTestUserData()
+	ss := append(getTestSnippetData(1, 5, false, 2), getTestSnippetData(10, 5, true, 1)...)
+
+	s, err := NewTestServerWithUI("../../ui/html", &mock.SnippetStore{DB: ss, UsersMap: um}, &mock.UsersStore{DB: um})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	srv := NewHttptestServer(t, s.routes())
+	defer srv.Close()
+	login(t, srv, "conor@mail.com", "12345678")
+
+	tests := map[string]struct {
+		WantCode    int
+		WantID      int64
+		WantSnippet *models.Snippet
+	}{
+		"Snippet not found": {
+			WantCode:    http.StatusNotFound,
+			WantID:      100500,
+			WantSnippet: nil,
+		},
+		"No access for snippet": {
+			WantCode:    http.StatusForbidden,
+			WantID:      ss[7].ID,
+			WantSnippet: nil,
+		},
+		"Success get page": {
+			WantCode:    http.StatusOK,
+			WantID:      ss[0].ID,
+			WantSnippet: ss[0],
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			code, _, data := get(fmt.Sprintf("%s/snippet/edit/%d", srv.URL, test.WantID), t, srv)
+
+			if code != test.WantCode {
+				t.Fatalf("Want: %d, Get: %d", test.WantCode, code)
+			}
+
+			if test.WantSnippet != nil && code == http.StatusOK {
+				if !strings.Contains(string(data), test.WantSnippet.Title) || !strings.Contains(string(data), test.WantSnippet.Title) {
+					t.Fatalf("No title or content in data")
 				}
 			}
 		})

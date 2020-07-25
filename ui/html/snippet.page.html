@@ -10,7 +10,11 @@
     <div class='snippet'>
         <div class='metadata'>
             <strong>{{.Snippet.Title}}</strong>
+            {{if .FormUser}}
+            <span>#{{.Snippet.ID}}(<a href="/snippet/edit/{{$snippet_id}}">Edit</a>)</span>
+            {{else}}
             <span>#{{.Snippet.ID}}</span>
+            {{end}}
         </div>
         <pre><code>{{.Snippet.Content}}</code></pre>
         <div class='metadata'>

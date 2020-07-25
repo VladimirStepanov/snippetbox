@@ -28,6 +28,7 @@ type templateData struct {
 	Errors      validation.Errors
 	Flashes     []interface{}
 	CSRFField   template.HTML
+	IsEdit      bool
 	Title       string
 	Year        int
 }

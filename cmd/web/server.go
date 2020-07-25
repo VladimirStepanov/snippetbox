@@ -38,6 +38,7 @@ func (s *Server) routes() http.Handler {
 	r.Handle("/snippet/create", s.accessOnlyAuth(http.HandlerFunc(s.createPOST))).Methods("POST")
 	r.Handle("/snippet/delete/{id:[0-9]+}", s.accessOnlyAuth(http.HandlerFunc(s.deleteSnippet))).Methods("GET")
 	r.Handle("/snippet/edit/{id:[0-9]+}", s.accessOnlyAuth(http.HandlerFunc(s.editSnippet))).Methods("GET")
+	r.Handle("/snippet/edit/{id:[0-9]+}", s.accessOnlyAuth(http.HandlerFunc(s.editPOST))).Methods("POST")
 	r.HandleFunc("/snippet/{id:[0-9]+}", s.showSnippet).Methods("GET")
 	r.Handle("/user/signup", s.accessOnlyNotAuth(http.HandlerFunc(s.signUpPOST))).Methods("POST")
 	r.Handle("/user/signup", s.accessOnlyNotAuth(http.HandlerFunc(s.signUp))).Methods("GET")

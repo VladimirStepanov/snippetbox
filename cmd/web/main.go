@@ -22,12 +22,9 @@ func main() {
 	}
 
 	serv := New(
-		config.addr,
-		config.log,
+		config,
 		&mysql.UsersStore{DB: db},
 		&mysql.SnippetStore{DB: db},
-		config.sessionStore,
-		config.csrfKey,
 	)
 
 	if err = serv.Start(); err != nil {

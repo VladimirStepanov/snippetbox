@@ -73,19 +73,17 @@ func (s *Server) Start() error {
 
 //New return new Server instance
 func New(
-	addr string,
-	log *logrus.Logger,
+	config *Config,
 	ur models.UserRepository,
 	sr models.SnippetRepository,
-	sessionStore *sessions.CookieStore,
-	csrfKey string) *Server {
+) *Server {
 
 	return &Server{
-		addr:         addr,
-		log:          log,
+		addr:         config.addr,
+		log:          config.log,
 		userStore:    ur,
 		snippetStore: sr,
-		session:      sessionStore,
-		csrfKey:      csrfKey,
+		session:      config.sessionStore,
+		csrfKey:      config.csrfKey,
 	}
 }

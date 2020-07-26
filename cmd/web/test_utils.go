@@ -82,7 +82,8 @@ func NewHttptestServer(t *testing.T, routes http.Handler) *httptest.Server {
 func NewTestServer(sr models.SnippetRepository, ur models.UserRepository) *Server {
 	logger := logrus.New()
 	logger.SetOutput(ioutil.Discard)
-	return New(":8080", logger, ur, sr, sessions.NewCookieStore([]byte("123")), "123")
+	testConfig := &Config{addr: ":8080", log: logger, sessionStore: sessions.NewCookieStore([]byte("123")), csrfKey: "123"}
+	return New(testConfig, ur, sr)
 }
 
 //NewTestServerWithUI return *Server object with templateCache

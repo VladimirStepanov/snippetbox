@@ -9,7 +9,7 @@ import (
 )
 
 func TestInsertUser(t *testing.T) {
-	db, truncate := GetDB(t, "root:123@/snippetbox_test")
+	db, truncate := GetDB(t, dsnString)
 	defer truncate("users")
 
 	us := UsersStore{DB: db}
@@ -23,7 +23,7 @@ func TestInsertUser(t *testing.T) {
 }
 
 func TestDuplicateEmail(t *testing.T) {
-	db, truncate := GetDB(t, "root:123@/snippetbox_test")
+	db, truncate := GetDB(t, dsnString)
 	defer truncate("users")
 
 	us := UsersStore{DB: db}
@@ -64,7 +64,7 @@ func TestGetUser(t *testing.T) {
 
 	for name, value := range tests {
 		t.Run(name, func(t *testing.T) {
-			db, truncate := GetDB(t, "root:123@/snippetbox_test")
+			db, truncate := GetDB(t, dsnString)
 			us := &UsersStore{db}
 			defer truncate("users")
 			if value.WantUser != nil {
@@ -120,7 +120,7 @@ func TestAuthentication(t *testing.T) {
 
 	for name, value := range tests {
 		t.Run(name, func(t *testing.T) {
-			db, truncate := GetDB(t, "root:123@/snippetbox_test")
+			db, truncate := GetDB(t, dsnString)
 			us := &UsersStore{db}
 			defer truncate("users")
 

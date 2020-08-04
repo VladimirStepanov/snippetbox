@@ -75,7 +75,7 @@ func TestDeleteSnippet(t *testing.T) {
 
 	for name, value := range tests {
 		t.Run(name, func(t *testing.T) {
-			db, truncate := GetDB(t, "root:123@/snippetbox_test")
+			db, truncate := GetDB(t, dsnString)
 			ss, ownerID := getPreparedSnippetStore(t, db)
 			defer truncate("snippets", "users")
 
@@ -134,7 +134,7 @@ func TestInsertSnippet(t *testing.T) {
 	}
 	for name, value := range tests {
 		t.Run(name, func(t *testing.T) {
-			db, truncate := GetDB(t, "root:123@/snippetbox_test")
+			db, truncate := GetDB(t, dsnString)
 			ss, userID := getPreparedSnippetStore(t, db)
 			defer truncate("snippets", "users")
 
@@ -181,7 +181,7 @@ func TestUpdate(t *testing.T) {
 
 	for name, value := range tests {
 		t.Run(name, func(t *testing.T) {
-			db, truncate := GetDB(t, "root:123@/snippetbox_test?parseTime=true")
+			db, truncate := GetDB(t, dsnString)
 			ss, ownerID := getPreparedSnippetStore(t, db)
 			defer truncate("snippets", "users")
 
@@ -262,7 +262,7 @@ func TestGetSnippet(t *testing.T) {
 
 	for name, value := range tests {
 		t.Run(name, func(t *testing.T) {
-			db, truncate := GetDB(t, "root:123@/snippetbox_test?parseTime=true")
+			db, truncate := GetDB(t, dsnString)
 			ss, ownerID := getPreparedSnippetStore(t, db)
 			defer truncate("snippets", "users")
 
@@ -368,7 +368,7 @@ func TestLatestAll(t *testing.T) {
 
 	for name, value := range tests {
 		t.Run(name, func(t *testing.T) {
-			db, truncate := GetDB(t, "root:123@/snippetbox_test?parseTime=true")
+			db, truncate := GetDB(t, dsnString)
 			ss, ownerID := getPreparedSnippetStore(t, db)
 			defer truncate("snippets", "users")
 

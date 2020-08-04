@@ -5,6 +5,10 @@ import (
 	"testing"
 )
 
+var (
+	dsnString = "root:123@/snippetbox_test?parseTime=true"
+)
+
 // GetDB ...
 func GetDB(t *testing.T, dsn string) (*sql.DB, func(tables ...string)) {
 	db, err := sql.Open("mysql", dsn)

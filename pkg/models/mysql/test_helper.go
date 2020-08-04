@@ -3,10 +3,12 @@ package mysql
 import (
 	"database/sql"
 	"testing"
+
+	"githib.com/VladimirStepanov/snippetbox/pkg/common"
 )
 
 var (
-	dsnString = "root:123@/snippetbox_test?parseTime=true"
+	dsnString = common.GetEnvVariableString("DSN", "root:123@/snippetbox_test?parseTime=true")
 )
 
 // GetDB ...

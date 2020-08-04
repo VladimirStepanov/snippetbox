@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"os"
 
+	"githib.com/VladimirStepanov/snippetbox/pkg/common"
 	"github.com/gorilla/sessions"
 	"github.com/sirupsen/logrus"
 )
@@ -15,14 +15,6 @@ type Config struct {
 	sessionStore *sessions.CookieStore
 	csrfKey      string
 	dsn          string
-}
-
-func getEnvVariableString(key, defaultValue string) string {
-	var res string
-	if res = os.Getenv(key); res == "" {
-		res = defaultValue
-	}
-	return res
 }
 
 func getLogger(levelString string) (*logrus.Logger, error) {
@@ -41,20 +33,20 @@ func getLogger(levelString string) (*logrus.Logger, error) {
 //NewConfig ...
 func NewConfig() (*Config, error) {
 
-	log, err := getLogger(getEnvVariableString("LOG_LEVEL", "INFO"))
+	log, err := getLogger(common.GetEnvVariableString("LOG_LEVEL", "INFO"))
 	if err != nil {
 		return nil, err
 	}
 
-	addr := getEnvVariableString("ADDR", "0.0.0.0")
-	port := getEnvVariableString("PORT", "8080")
+	addr := common.GetEnvVariableString("ADDR", "0.0.0.0")
+	port := common.GetEnvVariableString("PORT", "8080")
 
 	return &Config{
 		addr:         fmt.Sprintf("%s:%s", addr, port),
 		log:          log,
-		sessionStore: sessions.NewCookieStore([]byte(getEnvVariableString("SESSION_KEY", "session_key"))),
-		csrfKey:      getEnvVariableString("CSRF_KEY", "csrf_key"),
-		dsn:          getEnvVariableString("DSN", "root:123@/snippetbox?parseTime=true"),
+		sessionStore: sessions.NewCookieStore([]byte(common.GetEnvVariableString("SESSION_KEY", "session_key"))),
+		csrfKey:      common.GetEnvVariableString("CSRF_KEY", "csrf_key"),
+		dsn:          common.GetEnvVariableString("DSN", "root:123@/snippetbox?parseTime=true"),
 	}, nil
 
 }

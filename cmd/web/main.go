@@ -4,7 +4,12 @@ import (
 	"fmt"
 
 	"githib.com/VladimirStepanov/snippetbox/pkg/models/mysql"
+	"github.com/joho/godotenv"
 )
+
+func init() {
+	godotenv.Load("conf.env")
+}
 
 func main() {
 

@@ -14,3 +14,23 @@ List of used libraries:
 
 
 For migrations use tool [migrate](https://github.com/golang-migrate/migrate)
+
+For running
+-----------
+
+1. Run mysql docker image for tests (`docker-compose -f docker/docker-compose-prod.yml up`)
+2. If it first run, wait for loading mysql and run migrate tool (`migrate -path migrations/ -database "mysql://user:pass@tcp(127.0.0.1:3307)/snippetbox" up`)
+3. `make`
+4. `./snippetbox`
+
+See `conf.env` for environment variables or set it when start app. Example: `PORT=8082 ./snippetbox`
+
+
+For testing
+-------
+
+1. Run mysql docker image for tests (`docker-compose -f docker/docker-compose-tests.yml up`)
+2. If it first run, wait for loading mysql and run migrate tool (`migrate -path migrations/ -database "mysql://user:pass@tcp(127.0.0.1:3308)/snippetbox_test" up`)
+3. `make test`
+
+If you want other DSN string for mysql, change variable `dsnString` in `pkg/models/mysql/test_helper.go`

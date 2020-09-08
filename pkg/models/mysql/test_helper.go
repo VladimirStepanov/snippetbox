@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	dsnString = common.GetEnvVariableString("DSN", "root:123@/snippetbox_test?parseTime=true")
+	dsnString = common.GetEnvVariableString("DSN", "root:123@tcp(127.0.0.1:3308)/snippetbox_test?parseTime=true")
 )
 
 // GetDB ...

@@ -23,7 +23,7 @@ For running
 3. `make`
 4. `./snippetbox`
 
-See `conf.env` for environment variables or set it when start app. Example: `PORT=8082 ./snippetbox`
+See `conf.env` for environment variables or set it when app started. Example: `PORT=8082 ./snippetbox`
 
 
 For testing
